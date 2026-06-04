@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  phone       String?
+  role        String   @default("member")
+  designation String?
+  image       String?
+  bio         String?
+  joinDate    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  news        News[]
+  galleries   Gallery[]
+  events      UpcomingEvent[]
+}
+
+model News {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  image     String?
+  authorId  String
+  author    Member   @relation(fields: [authorId], references: [id])
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Fund {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  amount      Float
+  raised      Float    @default(0)
+  category    String
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Gallery {
+  id          String   @id @default(cuid())
+  title       String
+  image       String
+  description String?
+  category    String?
+  uploadedBy  String
+  uploader    Member   @relation(fields: [uploadedBy], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UpcomingEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  image       String?
+  createdBy   String
+  creator     Member   @relation(fields: [createdBy], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
