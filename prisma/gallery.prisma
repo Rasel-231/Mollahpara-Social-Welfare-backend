@@ -1,0 +1,16 @@
+
+model Gallery {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  image       String
+  description String?  @db.Text
+  category    String?
+  uploadedBy  String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  uploader    Member   @relation(fields: [uploadedBy], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([uploadedBy])
+  @@map("galleries")
+}

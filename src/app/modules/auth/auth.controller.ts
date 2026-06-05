@@ -26,7 +26,69 @@ const profile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const refreshAccessToken = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await AuthService.refreshAccessToken(
+      req.body.refreshToken
+    );
+
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Access token refreshed successfully',
+      data: result,
+    });
+  }
+);
+
+const logout = catchAsync(async (req: Request, res: Response) => {
+  await AuthService.logout(req.body.refreshToken);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Logged out successfully',
+  });
+});
+
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  const memberId = (req as any).user.id;
+  await AuthService.changePassword(memberId, req.body);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Password changed successfully',
+  });
+});
+
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  await AuthService.forgotPassword(req.body.email);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message:
+      'If an account with that email exists, a password reset link has been sent',
+  });
+});
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  await AuthService.resetPassword(req.body.token, req.body.newPassword);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Password reset successfully',
+  });
+});
+
 export const AuthController = {
   login,
   profile,
+  refreshAccessToken,
+  logout,
+  changePassword,
+  forgotPassword,
+  resetPassword,
 };

@@ -1,12 +1,15 @@
 import prisma from '../../../shared/prisma';
 
 const createNews = async (payload: any) => {
-  const news = await prisma.news.create({ data: payload });
+  const news = await prisma.post.create({
+    data: { ...payload, type: 'NEWS' },
+  });
   return news;
 };
 
 const getAllNews = async () => {
-  const news = await prisma.news.findMany({
+  const news = await prisma.post.findMany({
+    where: { type: 'NEWS' },
     include: { author: { select: { id: true, name: true, image: true } } },
     orderBy: { createdAt: 'desc' },
   });
@@ -14,7 +17,7 @@ const getAllNews = async () => {
 };
 
 const getNewsById = async (id: string) => {
-  const news = await prisma.news.findUnique({
+  const news = await prisma.post.findUnique({
     where: { id },
     include: { author: { select: { id: true, name: true, image: true } } },
   });
@@ -23,12 +26,12 @@ const getNewsById = async (id: string) => {
 };
 
 const updateNews = async (id: string, payload: any) => {
-  const news = await prisma.news.update({ where: { id }, data: payload });
+  const news = await prisma.post.update({ where: { id }, data: payload });
   return news;
 };
 
 const deleteNews = async (id: string) => {
-  const news = await prisma.news.delete({ where: { id } });
+  const news = await prisma.post.delete({ where: { id } });
   return news;
 };
 

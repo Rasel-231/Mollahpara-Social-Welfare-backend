@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
-import config from '../../../config';
-import prisma from '../../../shared/prisma';
+import config from '../../../config'
+import { prisma } from '../../../shared/prisma';
 
 const createMember = async (payload: any) => {
   const hashedPassword = await bcrypt.hash(
@@ -21,8 +21,6 @@ const createMember = async (payload: any) => {
       role: true,
       designation: true,
       image: true,
-      bio: true,
-      joinDate: true,
       createdAt: true,
     },
   });
@@ -40,8 +38,6 @@ const getAllMembers = async () => {
       role: true,
       designation: true,
       image: true,
-      bio: true,
-      joinDate: true,
       createdAt: true,
     },
   });
@@ -60,8 +56,6 @@ const getMemberById = async (id: string) => {
       role: true,
       designation: true,
       image: true,
-      bio: true,
-      joinDate: true,
       createdAt: true,
     },
   });
@@ -89,8 +83,6 @@ const updateMember = async (id: string, payload: any) => {
       role: true,
       designation: true,
       image: true,
-      bio: true,
-      joinDate: true,
       createdAt: true,
     },
   });
