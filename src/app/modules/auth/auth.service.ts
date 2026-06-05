@@ -1,8 +1,7 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import config from '../../../config';
-import prisma from '../../../shared/prisma';
+
 import sendEmail from '../../../shared/sendEmail';
 import {
   IAuthResponse,
@@ -10,6 +9,9 @@ import {
   ILoginPayload,
   IRefreshTokenResponse,
 } from './auth.interface';
+import { prisma } from '../../../shared/prisma';
+import config from '../../../config';
+
 
 const hashToken = (token: string): string => {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -33,21 +35,17 @@ const parseDurationToMs = (duration: string): number => {
   return value * (multipliers[unit] || 86400000);
 };
 
-const loginMember = async (
-  payload: ILoginPayload
-): Promise<IAuthResponse> => {
+const loginMember = async (payload: ILoginPayload): Promise<IAuthResponse> => {
   const member = await prisma.member.findUnique({
     where: { email: payload.email },
   });
+
 
   if (!member) {
     throw new Error('Invalid email or password');
   }
 
-  const isPasswordValid = await bcrypt.compare(
-    payload.password,
-    member.password
-  );
+  const isPasswordValid = await bcrypt.compare(payload.password, member.password);
 
   if (!isPasswordValid) {
     throw new Error('Invalid email or password');
@@ -55,15 +53,13 @@ const loginMember = async (
 
   const accessToken = jwt.sign(
     { id: member.id, email: member.email, role: member.role },
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn } as jwt.SignOptions
+    config.jwt.jwt_secret,
+    { expiresIn: config.jwt.jwt_expires_in } as jwt.SignOptions
   );
 
-  const refreshTokenValue = generateRefreshTokenValue();
+  const refreshTokenValue = crypto.randomBytes(40).toString('hex');
   const hashedToken = hashToken(refreshTokenValue);
-  const expiresAt = new Date(
-    Date.now() + parseDurationToMs(config.jwt.refreshExpiresIn)
-  );
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await prisma.refreshToken.create({
     data: {
@@ -111,36 +107,14 @@ const refreshAccessToken = async (
       email: storedToken.member.email,
       role: storedToken.member.role,
     },
-    config.jwt.secret,
-    { expiresIn: config.jwt.expiresIn } as jwt.SignOptions
+    config.jwt.jwt_secret,
+    { expiresIn: config.jwt.jwt_expires_in } as jwt.SignOptions
   );
 
   return { accessToken };
 };
 
-const getProfile = async (memberId: string) => {
-  const member = await prisma.member.findUnique({
-    where: { id: memberId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      designation: true,
-      image: true,
-      bio: true,
-      joinDate: true,
-      createdAt: true,
-    },
-  });
 
-  if (!member) {
-    throw new Error('Member not found');
-  }
-
-  return member;
-};
 
 const logout = async (refreshTokenValue: string): Promise<void> => {
   const hashedToken = hashToken(refreshTokenValue);
@@ -173,7 +147,7 @@ const changePassword = async (
 
   const hashedPassword = await bcrypt.hash(
     payload.newPassword,
-    config.bcryptSaltRounds
+    config.salt_round
   );
 
   await prisma.member.update({
@@ -194,7 +168,7 @@ const forgotPassword = async (email: string): Promise<void> => {
   const resetToken = crypto.randomBytes(32).toString('hex');
   const hashedResetToken = hashToken(resetToken);
   const expiresAt = new Date(
-    Date.now() + parseDurationToMs(config.jwt.resetTokenExpiresIn)
+    Date.now() + parseDurationToMs(config.jwt.jwt_refresh_expires_in)
   );
 
   await prisma.passwordResetToken.create({
@@ -205,7 +179,7 @@ const forgotPassword = async (email: string): Promise<void> => {
     },
   });
 
-  const resetUrl = `${config.nodeEnv === 'production' ? 'https://yourdomain.com' : 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  const resetUrl = `${config.node_env === 'production' ? 'https://yourdomain.com' : 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
   await sendEmail({
     to: member.email,
@@ -214,7 +188,7 @@ const forgotPassword = async (email: string): Promise<void> => {
       <p>Hello ${member.name},</p>
       <p>You requested a password reset. Click the link below to reset your password:</p>
       <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link will expire in ${config.jwt.resetTokenExpiresIn}.</p>
+      <p>This link will expire in ${config.jwt.jwt_refresh_expires_in}.</p>
       <p>If you didn't request this, please ignore this email.</p>
     `,
   });
@@ -243,7 +217,7 @@ const resetPassword = async (
 
   const hashedPassword = await bcrypt.hash(
     newPassword,
-    config.bcryptSaltRounds
+    config.salt_round
   );
 
   await prisma.member.update({
@@ -258,7 +232,6 @@ const resetPassword = async (
 
 export const AuthService = {
   loginMember,
-  getProfile,
   refreshAccessToken,
   logout,
   changePassword,

@@ -7,18 +7,16 @@ import { MemberValidation } from './member.validation';
 const router = Router();
 
 router.post(
-  '/',
+  '/create',
   validateRequest(MemberValidation.create),
   MemberController.createMember
 );
 router.get('/', MemberController.getAllMembers);
 router.get('/:id', MemberController.getMemberById);
 router.patch(
-  '/:id',
-  auth('admin'),
-  validateRequest(MemberValidation.update),
+  '/:id', validateRequest(MemberValidation.update),
   MemberController.updateMember
 );
-router.delete('/:id', auth('admin'), MemberController.deleteMember);
+router.delete('/:id', MemberController.deleteMember);
 
 export const MemberRoutes = router;

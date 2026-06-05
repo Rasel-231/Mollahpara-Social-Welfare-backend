@@ -1,8 +1,215 @@
 generator client {
-  provider        = "prisma-client-js"
-  
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  MODERATOR
+}
+
+enum BloodGroup {
+  A_POSITIVE
+  A_NEGATIVE
+  B_POSITIVE
+  B_NEGATIVE
+  AB_POSITIVE
+  AB_NEGATIVE
+  O_POSITIVE
+  O_NEGATIVE
+}
+
+enum PaymentWay {
+  BKASH
+  NAGAD
+  ROCKET
+  BANK
+  CASH
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PostType {
+  BLOG
+  NEWS
+  ARTICLE
+}
+
+enum ProjectStatus {
+  PLANNING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model Member {
+  id           String           @id @default(uuid()) @db.Uuid
+  name         String
+  email        String           @unique
+  password     String
+  phone        String?          @unique
+  village      String
+  image        String?
+  designation  String?
+  bloodGroup   BloodGroup?
+  role         Role             @default(MEMBER)
+  isActive     Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  posts         Post[]
+  galleries     Gallery[]
+  events        UpcomingEvent[]
+  refreshTokens RefreshToken[]
+  transactions  Transaction[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+  @@map("members")
+}
+
+model Post {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  image       String?
+  authorId    String   @db.Uuid
+  type        PostType @default(NEWS)
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author      Member   @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([slug])
+  @@index([authorId])
+  @@map("posts")
+}
+
+model Gallery {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  image       String
+  description String?  @db.Text
+  category    String?
+  uploadedBy  String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  uploader    Member   @relation(fields: [uploadedBy], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([uploadedBy])
+  @@map("galleries")
+}
+
+model UpcomingEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?  @db.Text
+  date        DateTime
+  location    String?
+  image       String?
+  createdBy   String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator     Member   @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([createdBy])
+  @@map("upcoming_events")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  token     String   @unique
+  memberId  String   @db.Uuid
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([memberId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
+model Transaction {
+  id              String            @id @default(uuid()) @db.Uuid
+  memberId        String            @db.Uuid
+  transactionId   String            @unique
+  method          String
+  amount          Decimal           @db.Decimal(12, 2)
+  paymentWay      PaymentWay
+  status          TransactionStatus @default(PENDING)
+  description     String?           @db.Text
+  transactionDate DateTime          @default(now())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  member          Member            @relation(fields: [memberId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([transactionId])
+  @@index([memberId])
+  @@map("transactions")
+}
+
+model Fund {
+  id          String        @id @default(uuid()) @db.Uuid
+  title       String
+  description String?       @db.Text
+  amount      Decimal       @db.Decimal(12, 2)
+  raised      Decimal       @db.Decimal(12, 2) @default(0.00)
+  category    String
+  status      ProjectStatus @default(PLANNING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("funds")
+}
+
+model Video {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String   @db.Text
+  thumbnail   String
+  videoUrl    String
+  youtubeUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("videos")
+}
+
+model Example {
+  id       String  @id @default(uuid()) @db.Uuid
+  title    String
+  content  String  @db.Text
+  image    String?
+  authorId String  @db.Uuid
+
+  @@index([authorId])
+  @@map("example")
 }

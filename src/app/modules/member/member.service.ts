@@ -1,16 +1,17 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import config from '../../../config'
 import { prisma } from '../../../shared/prisma';
 
 const createMember = async (payload: any) => {
-  const hashedPassword = await bcrypt.hash(
-    payload.password,
-    config.bcryptSaltRounds
-  );
+  const { password, ...memberData } = payload;
+
+  const saltRounds = Number(config.salt_round) || 12;
+
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   const member = await prisma.member.create({
     data: {
-      ...payload,
+      ...memberData,
       password: hashedPassword,
     },
     select: {
@@ -27,7 +28,6 @@ const createMember = async (payload: any) => {
 
   return member;
 };
-
 const getAllMembers = async () => {
   const members = await prisma.member.findMany({
     select: {
@@ -69,7 +69,7 @@ const getMemberById = async (id: string) => {
 
 const updateMember = async (id: string, payload: any) => {
   if (payload.password) {
-    payload.password = await bcrypt.hash(payload.password, config.bcryptSaltRounds);
+    payload.password = await bcrypt.hash(payload.password, config.salt_round);
   }
 
   const member = await prisma.member.update({

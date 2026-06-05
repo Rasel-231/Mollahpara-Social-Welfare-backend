@@ -3,22 +3,35 @@ import path from 'path';
 
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
-export const config = {
-  nodeEnv: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '5000', 10),
-  databaseUrl: process.env.DATABASE_URL || '',
+export default {
+  node_env: process.env.NODE_ENV,
+  base_url: process.env.BASE_URL,
+  frontend_url: process.env.FRONTEND_URL,
+  port: process.env.PORT,
+  database_url: process.env.DATABASE_URL,
+  api_secret: process.env.API_SECRET,
+  api_key: process.env.API_KEY,
+  cloud_name: process.env.CLOUD_NAME,
+  salt_round: process.env.SALT_ROUND || 12,
+  ai_api_key: process.env.AI_API_KEY,
+  redis_url: process.env.REDIS_URL,
+
   jwt: {
-    secret: process.env.JWT_SECRET || 'fallback-secret',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    resetTokenExpiresIn: process.env.JWT_RESET_TOKEN_EXPIRES_IN || '15m',
+    jwt_secret: process.env.JWT_SECRET as string,
+    jwt_expires_in: process.env.JWT_EXPIRES_IN as string,
+    jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN as string,
   },
-  bcryptSaltRounds: 12,
+
+  payment: {
+    store_id: process.env.store_id,
+    store_password: process.env.store_password,
+  },
+
   email: {
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '587', 10),
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password',
-    from: process.env.EMAIL_FROM || 'your-email@gmail.com',
+    host: "smtp.gmail.com",
+    port: 587,
+    user: process.env.SUPPORT_EMAIL,
+    pass: process.env.APP_PASSWORD,
+    from: process.env.SUPPORT_EMAIL,
   },
 };

@@ -11,7 +11,6 @@ router.post(
   validateRequest(AuthValidation.login),
   AuthController.login
 );
-router.get('/profile', auth(), AuthController.profile);
 router.post(
   '/refresh-token',
   validateRequest(AuthValidation.refreshToken),
