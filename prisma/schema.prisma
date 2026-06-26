@@ -23,19 +23,26 @@ enum BloodGroup {
   O_NEGATIVE
 }
 
-enum PaymentWay {
+enum PaymentMethod {
   BKASH
   NAGAD
   ROCKET
-  BANK
-  CASH
+  CREDIT_CARD
+  BANK_TRANSFER
 }
 
-enum TransactionStatus {
+enum DonationStatus {
   PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
+  VERIFIED
+  REJECTED
+}
+
+enum DonationPurpose {
+  GENERAL
+  BLOOD_DONATION
+  EDUCATION
+  RELIEF
+  OTHER
 }
 
 enum PostType {
@@ -51,47 +58,49 @@ enum ProjectStatus {
   CANCELLED
 }
 
-model Member {
-  id           String           @id @default(uuid()) @db.Uuid
-  name         String
-  email        String           @unique
-  password     String
-  phone        String?          @unique
-  village      String
-  image        String?
-  designation  String?
-  bloodGroup   BloodGroup?
-  role         Role             @default(MEMBER)
-  isActive     Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-
+model User {
+  id            String          @id @default(uuid()) @db.Uuid
+  name          String
+  email         String          @unique
+  password      String
+  phone         String?         @unique
+  village       String
+  image         String?
+  designation   String?
+  bloodGroup    BloodGroup?
+  role          Role            @default(MEMBER)
+  isActive      Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  donorProfile  Donor?          @relation(fields: [donorId], references: [id])
+  bloodRequests BloodRequest[]
   posts         Post[]
-  galleries     Gallery[]
   events        UpcomingEvent[]
   refreshTokens RefreshToken[]
   transactions  Transaction[]
+  complains     Complain[]
+  donorId       String?
 
   @@index([email])
   @@index([phone])
   @@index([role])
-  @@map("members")
+  @@map("users")
 }
 
 model Post {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String    @id @default(uuid()) @db.Uuid
   title       String
-  slug        String   @unique
-  content     String   @db.Text
+  slug        String    @unique
+  content     String    @db.Text
   image       String?
-  authorId    String   @db.Uuid
-  type        PostType @default(NEWS)
-  published   Boolean  @default(false)
+  authorId    String    @db.Uuid
+  type        PostType  @default(NEWS)
+  published   Boolean   @default(false)
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  author      Member   @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([slug])
   @@index([authorId])
@@ -99,19 +108,28 @@ model Post {
 }
 
 model Gallery {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  image     String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("galleries")
+}
+
+model Media {
   id          String   @id @default(uuid()) @db.Uuid
   title       String
-  image       String
   description String?  @db.Text
+  image       String?
+  url         String?
   category    String?
-  uploadedBy  String   @db.Uuid
+  type        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  uploader    Member   @relation(fields: [uploadedBy], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@index([uploadedBy])
-  @@map("galleries")
+  @@map("media")
 }
 
 model UpcomingEvent {
@@ -125,7 +143,7 @@ model UpcomingEvent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  creator     Member   @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   @@index([createdBy])
   @@map("upcoming_events")
@@ -135,7 +153,7 @@ model RefreshToken {
   id        String   @id @default(uuid()) @db.Uuid
   token     String   @unique
   memberId  String   @db.Uuid
-  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member    User     @relation(fields: [memberId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -157,19 +175,21 @@ model PasswordResetToken {
 }
 
 model Transaction {
-  id              String            @id @default(uuid()) @db.Uuid
-  memberId        String            @db.Uuid
-  transactionId   String            @unique
-  method          String
-  amount          Decimal           @db.Decimal(12, 2)
-  paymentWay      PaymentWay
-  status          TransactionStatus @default(PENDING)
-  description     String?           @db.Text
-  transactionDate DateTime          @default(now())
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id            String          @id @default(uuid()) @db.Uuid
+  donorName     String
+  phone         String
+  email         String?
+  amount        Decimal         @db.Decimal(12, 2)
+  paymentMethod PaymentMethod
+  transactionId String          @unique
+  purpose       DonationPurpose @default(GENERAL)
+  message       String?         @db.Text
+  status        DonationStatus  @default(PENDING)
+  memberId      String?         @db.Uuid
+  member        User?           @relation(fields: [memberId], references: [id])
 
-  member          Member            @relation(fields: [memberId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([transactionId])
   @@index([memberId])
@@ -181,7 +201,7 @@ model Fund {
   title       String
   description String?       @db.Text
   amount      Decimal       @db.Decimal(12, 2)
-  raised      Decimal       @db.Decimal(12, 2) @default(0.00)
+  raised      Decimal       @default(0.00) @db.Decimal(12, 2)
   category    String
   status      ProjectStatus @default(PLANNING)
   createdAt   DateTime      @default(now())
@@ -191,16 +211,90 @@ model Fund {
 }
 
 model Video {
-  id          String   @id @default(uuid()) @db.Uuid
-  title       String
-  description String   @db.Text
-  thumbnail   String
-  videoUrl    String
-  youtubeUrl  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  videoUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("videos")
+}
+
+model Donor {
+  id               String   @id @default(uuid())
+  name             String
+  phone            String
+  bloodGroup       String
+  lastDonationDate String?
+  address          String
+  isAvailable      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  members          User[]
+
+  @@index([bloodGroup])
+  @@index([phone])
+  @@map("donors")
+}
+
+model Donation {
+  id            String   @id @default(uuid())
+  donorName     String
+  phone         String
+  email         String?
+  amount        Float
+  paymentMethod String
+  transactionId String   @unique
+  purpose       String   @default("general")
+  message       String?
+  status        String   @default("pending") // pending, verified, rejected
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model BloodRequest {
+  id            String   @id @default(uuid()) @db.Uuid
+  patientName   String
+  bloodGroup    String
+  hospitalName  String
+  requiredDate  DateTime
+  unitsRequired Int
+  urgency       String
+  status        String   @default("PENDING")
+  requesterId   String   @db.Uuid
+  requester     User     @relation(fields: [requesterId], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@map("blood_requests")
+}
+
+model Complain {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  village   String
+  subject   String
+  message   String   @db.Text
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("complains")
+}
+
+model Contact {
+  id          String   @id @default(uuid())
+  name        String
+  phone       String
+  village     String
+  designation String
+  email       String?
+  subject     String
+  message     String
+  createdAt   DateTime @default(now())
+
+  @@index([phone])
+  @@index([createdAt])
 }
 
 model Example {

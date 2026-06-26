@@ -1,25 +1,30 @@
 import { Router } from 'express';
+import { Role } from '@prisma/client';
 import auth from '../../../middlewares/auth';
 import validateRequest from '../../../middlewares/validateRequest';
 import { FundController } from './fund.controller';
-import { FundValidation } from './fund.validation';
+import { TransactionValidation } from './fund.validation';
 
 const router = Router();
 
 router.post(
   '/',
-  auth('admin'),
-  validateRequest(FundValidation.create),
+  auth(Role.ADMIN),
+  validateRequest(TransactionValidation.create),
   FundController.createFund
 );
+
 router.get('/', FundController.getAllFunds);
+
 router.get('/:id', FundController.getFundById);
+
 router.patch(
   '/:id',
-  auth('admin'),
-  validateRequest(FundValidation.update),
+  auth(Role.ADMIN),
+  validateRequest(TransactionValidation.update),
   FundController.updateFund
 );
-router.delete('/:id', auth('admin'), FundController.deleteFund);
+
+router.delete('/:id', auth(Role.ADMIN), FundController.deleteFund);
 
 export const FundRoutes = router;

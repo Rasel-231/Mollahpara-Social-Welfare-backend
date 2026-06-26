@@ -6,6 +6,14 @@ import { AuthService } from './auth.service';
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.loginMember(req.body);
 
+
+  res.cookie('accessToken', result.accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -13,7 +21,6 @@ const login = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
 
 
 const refreshAccessToken = catchAsync(

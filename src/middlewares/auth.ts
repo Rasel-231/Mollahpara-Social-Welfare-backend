@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { Role } from '@prisma/client';
 import config from '../config';
-import prisma from '../shared/prisma';
+import { prisma } from '../shared/prisma';
 
-const auth = (...allowedRoles: string[]) => {
+const auth = (...allowedRoles: Role[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req.headers.authorization?.split(' ')[1];
+      const token = req.cookies?.accessToken;
 
       if (!token) {
         return res.status(401).json({
@@ -16,9 +17,26 @@ const auth = (...allowedRoles: string[]) => {
         });
       }
 
-      const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
+      let decoded: JwtPayload;
+      try {
+        decoded = jwt.verify(token, config.jwt.jwt_secret) as JwtPayload;
+      } catch (err) {
+        return res.status(401).json({
+          success: false,
+          statusCode: 401,
+          message: 'Invalid or expired token',
+        });
+      }
 
-      const member = await prisma.member.findUnique({
+      if (!decoded?.id) {
+        return res.status(401).json({
+          success: false,
+          statusCode: 401,
+          message: 'Invalid token payload',
+        });
+      }
+
+      const member = await prisma.user.findUnique({
         where: { id: decoded.id },
       });
 
@@ -27,6 +45,14 @@ const auth = (...allowedRoles: string[]) => {
           success: false,
           statusCode: 401,
           message: 'Invalid token',
+        });
+      }
+
+      if (!member.isActive) {
+        return res.status(401).json({
+          success: false,
+          statusCode: 401,
+          message: 'Your account is not active',
         });
       }
 
