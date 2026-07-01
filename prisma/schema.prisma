@@ -62,7 +62,7 @@ model User {
   id            String          @id @default(uuid()) @db.Uuid
   name          String
   email         String          @unique
-  password      String
+  password      String?
   phone         String?         @unique
   village       String
   image         String?
@@ -72,14 +72,14 @@ model User {
   isActive      Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  donorProfile  Donor?          @relation(fields: [donorId], references: [id])
+  donorProfile  Donor?
   bloodRequests BloodRequest[]
   posts         Post[]
   events        UpcomingEvent[]
   refreshTokens RefreshToken[]
   transactions  Transaction[]
   complains     Complain[]
-  donorId       String?
+  donorId       String?         @unique
 
   @@index([email])
   @@index([phone])
@@ -229,26 +229,12 @@ model Donor {
   address          String
   isAvailable      Boolean  @default(true)
   createdAt        DateTime @default(now())
-  members          User[]
+  userId           String?  @unique @db.Uuid
+  user             User?    @relation(fields: [userId], references: [id])
 
   @@index([bloodGroup])
   @@index([phone])
   @@map("donors")
-}
-
-model Donation {
-  id            String   @id @default(uuid())
-  donorName     String
-  phone         String
-  email         String?
-  amount        Float
-  paymentMethod String
-  transactionId String   @unique
-  purpose       String   @default("general")
-  message       String?
-  status        String   @default("pending") // pending, verified, rejected
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }
 
 model BloodRequest {
@@ -256,12 +242,14 @@ model BloodRequest {
   patientName   String
   bloodGroup    String
   hospitalName  String
+  contactPhone  String
   requiredDate  DateTime
   unitsRequired Int
   urgency       String
+  notes         String?
   status        String   @default("PENDING")
-  requesterId   String   @db.Uuid
-  requester     User     @relation(fields: [requesterId], references: [id])
+  requesterId   String?  @db.Uuid
+  requester     User?    @relation(fields: [requesterId], references: [id])
   createdAt     DateTime @default(now())
 
   @@map("blood_requests")
@@ -297,13 +285,24 @@ model Contact {
   @@index([createdAt])
 }
 
-model Example {
-  id       String  @id @default(uuid()) @db.Uuid
-  title    String
-  content  String  @db.Text
-  image    String?
-  authorId String  @db.Uuid
+model EducationAidApplication {
+  id                String   @id @default(uuid())
+  studentName       String
+  guardianName      String
+  dateOfBirth       String
+  nidOrBirthReg     String
+  institutionName   String
+  className         String
+  rollNumber        String
+  gpa               Decimal  @db.Decimal(3, 2)
+  monthlyIncome     String
+  currentAddress    String
+  photoUrl          String
+  marksheetUrl      String
+  recommendationUrl String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  @@index([authorId])
-  @@map("example")
+  @@index([studentName, className])
+  @@map("scholarships")
 }

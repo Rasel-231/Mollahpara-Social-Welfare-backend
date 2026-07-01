@@ -38,4 +38,10 @@ router.post(
   AuthController.resetPassword
 );
 
+router.get(
+  '/profile',
+  auth(),
+  AuthController.getMyProfile
+);
+
 export const AuthRoutes = router;

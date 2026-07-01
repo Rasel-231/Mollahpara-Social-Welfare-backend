@@ -2,10 +2,11 @@ import { z } from 'zod';
 
 const create = z.object({
   body: z.object({
-    title: z.string({ required_error: 'Title is required' }),
-    content: z.string({ required_error: 'Content is required' }),
+    title: z.string().min(1, 'Title is required'),
+    content: z.string().min(1, 'Content is required'),
+    authorId: z.string().min(1, 'Author ID is required'),
+    slug: z.string().optional(),
     image: z.string().optional(),
-    authorId: z.string({ required_error: 'Author ID is required' }),
     published: z.boolean().optional(),
   }),
 });

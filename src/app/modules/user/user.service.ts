@@ -23,6 +23,7 @@ const createUser = async (payload: IUserPayload, file?: IFile) => {
   if (file) {
     const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
+
   }
   const { password, images, ...userData } = payload as any;
 
@@ -49,15 +50,7 @@ const createUser = async (payload: IUserPayload, file?: IFile) => {
 
 const getAllUsers = async () => {
   return await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      designation: true,
-      image: true,
-      createdAt: true,
-    },
+
   });
 };
 

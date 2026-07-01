@@ -4,12 +4,13 @@ import sendResponse from '../../../shared/sendResponse';
 import { GalleryService } from './gallery.service';
 
 const createGallery = catchAsync(async (req: Request, res: Response) => {
-  const result = await GalleryService.createGallery(req.body);
+  const payload = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body;
+  const result = await GalleryService.createGallery(payload, req.file);
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
-    message: 'Gallery image added successfully',
+    message: 'Gallery created successfully',
     data: result,
   });
 });
@@ -37,7 +38,8 @@ const getGalleryById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateGallery = catchAsync(async (req: Request, res: Response) => {
-  const result = await GalleryService.updateGallery(req.params.id as string, req.body);
+  const payload = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body;
+  const result = await GalleryService.updateGallery(req.params.id as string, payload, req.file);
 
   sendResponse(res, {
     statusCode: 200,

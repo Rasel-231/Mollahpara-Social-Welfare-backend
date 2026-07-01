@@ -29,7 +29,7 @@ const updateStatus = z.object({
   }),
 });
 
-export const TransactionValidation = {
+export const fundValidation = {
   create,
   update,
   updateStatus,

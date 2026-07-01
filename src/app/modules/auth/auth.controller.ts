@@ -80,6 +80,18 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const result = await AuthService.getMyProfile(userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Profile retrieved successfully',
+    data: result,
+  });
+});
+
 export const AuthController = {
   login,
   refreshAccessToken,
@@ -87,4 +99,5 @@ export const AuthController = {
   changePassword,
   forgotPassword,
   resetPassword,
+  getMyProfile,
 };

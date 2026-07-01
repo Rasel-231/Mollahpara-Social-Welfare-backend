@@ -9,9 +9,8 @@ const router = Router();
 // Create User
 router.post(
   '/create',
-  FileUploadHelper.upload.single('file'), // ফাইল ধরুন
+  FileUploadHelper.upload.single('file'),
   (req, res, next) => {
-    // ফর্ম-ডাটা থেকে ডাটা পার্স করুন
     if (req.body.data) {
       req.body = JSON.parse(req.body.data);
     }
