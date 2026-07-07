@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
+import pick from '../../../shared/pick';
 import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 
@@ -17,13 +18,17 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getAllUsers();
+  const filters = pick(req.query, ['searchTerm', 'name', 'email', 'phone', 'village', 'designation', 'bloodGroup', 'role', 'isActive']);
+  const paginationOptions = pick(req.query, ['page', 'limit', 'sortBy', 'sortOrder']);
+
+  const result = await UserService.getAllUsers({ ...filters, ...paginationOptions } as any);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: 'Users retrieved successfully',
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 

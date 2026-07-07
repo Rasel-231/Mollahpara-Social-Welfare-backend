@@ -8,6 +8,10 @@ const create = z.object({
     phone: z.string().optional(),
     designation: z.string().optional(),
     image: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    role: z.string().optional(),
+    memberType: z.string().optional(),
+    nid: z.string().optional(),
   }),
 });
 
@@ -19,6 +23,10 @@ const update = z.object({
     phone: z.string().optional(),
     designation: z.string().optional(),
     image: z.string().optional(),
+    bloodGroup: z.string().optional(),
+    role: z.string().optional(),
+    memberType: z.string().optional(),
+    nid: z.string().optional(),
   }),
 });
 

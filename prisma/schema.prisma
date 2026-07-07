@@ -12,6 +12,19 @@ enum Role {
   MODERATOR
 }
 
+enum MemberType {
+  PRESIDENT
+  VICE_PRESIDENT
+  SECRETARY
+  JOINT_SECRETARY
+  TREASURER
+  ORGANIZING_SEC
+  EXECUTIVE
+  GENERAL
+  ADVISOR
+  VOLUNTEER
+}
+
 enum BloodGroup {
   A_POSITIVE
   A_NEGATIVE
@@ -69,6 +82,7 @@ model User {
   designation   String?
   bloodGroup    BloodGroup?
   role          Role            @default(MEMBER)
+  memberType    MemberType      @default(GENERAL)
   isActive      Boolean         @default(false)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -79,6 +93,7 @@ model User {
   refreshTokens RefreshToken[]
   transactions  Transaction[]
   complains     Complain[]
+  nid           String?
   donorId       String?         @unique
 
   @@index([email])
