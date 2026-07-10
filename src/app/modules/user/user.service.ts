@@ -131,10 +131,11 @@ const updateUser = async (id: string, payload: Partial<IUserPayload>, file?: any
     payload.password = await bcrypt.hash(payload.password, saltRounds);
   }
 
+  const updateData: any = { ...payload };
 
   return await prisma.user.update({
     where: { id },
-    data: payload,
+    data: updateData,
     select: {
       id: true,
       name: true,
@@ -153,10 +154,52 @@ const deleteUser = async (id: string) => {
   });
 };
 
+const approveUser = async (id: string) => {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new Error('User not found');
+
+  return await prisma.user.update({
+    where: { id },
+    data: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      designation: true,
+      image: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+};
+
+const rejectUser = async (id: string) => {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new Error('User not found');
+
+  return await prisma.user.update({
+    where: { id },
+    data: { isActive: false },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      designation: true,
+      image: true,
+      isActive: true,
+      createdAt: true,
+    },
+  });
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
+  approveUser,
+  rejectUser,
 };

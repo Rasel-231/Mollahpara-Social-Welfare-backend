@@ -1,8 +1,19 @@
 import { prisma } from '../../../shared/prisma';
 
 const createBloodRequest = async (payload: any) => {
+
   const bloodRequest = await prisma.bloodRequest.create({
-    data: payload,
+    data: {
+      patientName: payload.patientName,
+      bloodGroup: payload.bloodGroup,
+      hospitalName: payload.hospitalName,
+      contactPhone: payload.contactPhone,
+      requiredDate: new Date(payload.requiredDate),
+      unitsRequired: Number(payload.unitsRequired),
+      urgency: payload.urgency,
+      notes: payload.notes,
+      requesterId: payload.requesterId,
+    },
     include: { requester: true },
   });
 
@@ -10,12 +21,10 @@ const createBloodRequest = async (payload: any) => {
 };
 
 const getAllBloodRequests = async () => {
-  const bloodRequests = await prisma.bloodRequest.findMany({
+  return await prisma.bloodRequest.findMany({
     orderBy: { createdAt: 'desc' },
     include: { requester: true },
   });
-
-  return bloodRequests;
 };
 
 const getBloodRequestById = async (id: string) => {
@@ -37,12 +46,16 @@ const updateBloodRequest = async (id: string, payload: any) => {
     throw new Error('Blood request not found');
   }
 
-  const bloodRequest = await prisma.bloodRequest.update({
-    where: { id },
-    data: payload,
-  });
+  const dataToUpdate = {
+    ...payload,
+    ...(payload.requiredDate && { requiredDate: new Date(payload.requiredDate) }),
+    ...(payload.unitsRequired && { unitsRequired: Number(payload.unitsRequired) }),
+  };
 
-  return bloodRequest;
+  return await prisma.bloodRequest.update({
+    where: { id },
+    data: dataToUpdate,
+  });
 };
 
 const deleteBloodRequest = async (id: string) => {
@@ -51,11 +64,9 @@ const deleteBloodRequest = async (id: string) => {
     throw new Error('Blood request not found');
   }
 
-  const bloodRequest = await prisma.bloodRequest.delete({
+  return await prisma.bloodRequest.delete({
     where: { id },
   });
-
-  return bloodRequest;
 };
 
 export const BloodRequestService = {

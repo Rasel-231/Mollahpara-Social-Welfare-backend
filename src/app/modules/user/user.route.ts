@@ -43,4 +43,10 @@ router.patch(
 // Delete User
 router.delete('/:id', UserController.deleteUser);
 
+// Approve User
+router.patch('/:id/approve', UserController.approveUser);
+
+// Reject User
+router.patch('/:id/reject', UserController.rejectUser);
+
 export const UserRoutes = router;

@@ -274,6 +274,7 @@ model Complain {
   id        String   @id @default(uuid())
   name      String
   phone     String
+  email     String?
   village   String
   subject   String
   message   String   @db.Text

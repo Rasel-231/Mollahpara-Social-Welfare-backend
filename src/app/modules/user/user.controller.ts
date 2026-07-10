@@ -66,10 +66,34 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const approveUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.approveUser(req.params.id as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User approved successfully',
+    data: result,
+  });
+});
+
+const rejectUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.rejectUser(req.params.id as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User rejected successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
+  approveUser,
+  rejectUser,
 };
