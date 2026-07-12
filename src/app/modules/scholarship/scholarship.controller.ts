@@ -3,10 +3,14 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { ScholarshipService } from './scholarship.service';
 
+const extractFiles = (req: Request): Express.Multer.File[] | undefined => {
+  const filesObj = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+  return filesObj ? Object.values(filesObj).flat() : undefined;
+};
+
 const createApplication = catchAsync(async (req: Request, res: Response) => {
-  const payload = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body;
-  const files = req.files as Express.Multer.File[] | undefined;
-  const result = await ScholarshipService.createApplication(payload, files);
+  const files = extractFiles(req);
+  const result = await ScholarshipService.createApplication(req.body, files);
 
   sendResponse(res, {
     statusCode: 201,
@@ -37,9 +41,8 @@ const getSingleApplication = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateApplication = catchAsync(async (req: Request, res: Response) => {
-  const payload = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body;
-  const files = req.files as Express.Multer.File[] | undefined;
-  const result = await ScholarshipService.updateApplication(req.params.id as string, payload, files);
+  const files = extractFiles(req);
+  const result = await ScholarshipService.updateApplication(req.params.id as string, req.body, files);
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -14,16 +14,23 @@ interface IGalleryPayload {
 }
 
 const createGallery = async (payload: IGalleryPayload, file?: IFile) => {
+  let imageUrl = payload.image || "";
   if (file) {
     const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
-    payload.image = uploadedImage.secure_url;
+    imageUrl = uploadedImage.secure_url;
+  }
+  if (!imageUrl) {
+    throw new Error("Image is required for gallery creation");
   }
 
   return await prisma.gallery.create({
-    data: payload as any,
+    data: {
+      title: payload.title,
+      category: payload.category,
+      image: imageUrl,
+    },
   });
 };
-
 const getAllGalleries = async () => {
   return await prisma.gallery.findMany({
     orderBy: { createdAt: 'desc' },

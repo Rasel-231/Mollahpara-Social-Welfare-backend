@@ -2,19 +2,30 @@ import { prisma } from '../../../shared/prisma';
 import { FileUploadHelper } from '../../../shared/fileUploader';
 import { Prisma } from '@prisma/client';
 
-interface IFile {
-  path: string;
-  fieldname: string;
-  originalname: string;
+interface ICloudinaryUploadResult {
+  secure_url: string;
 }
 
+const REQUIRED_FILE_FIELDS = ['photo', 'marksheet', 'recommendation'] as const;
+
+const uploadToCloudinary = async (file: Express.Multer.File) => {
+  return await FileUploadHelper.uploadToCloudinary(file) as ICloudinaryUploadResult;
+};
+
 const createApplication = async (
-  payload: Prisma.EducationAidApplicationCreateInput, 
-  files?: IFile[]
+  payload: Prisma.EducationAidApplicationCreateInput,
+  files?: Express.Multer.File[]
 ) => {
+  const uploadedFields = new Set(files?.map((file) => file.fieldname));
+  const missingFields = REQUIRED_FILE_FIELDS.filter((field) => !uploadedFields.has(field));
+
+  if (missingFields.length) {
+    throw new Error(`Missing required document(s): ${missingFields.join(', ')}`);
+  }
+
   if (files && files.length) {
     for (const file of files) {
-      const uploaded: any = await FileUploadHelper.uploadToCloudinary(file);
+      const uploaded = await uploadToCloudinary(file);
       if (file.fieldname === 'photo') payload.photoUrl = uploaded.secure_url;
       if (file.fieldname === 'marksheet') payload.marksheetUrl = uploaded.secure_url;
       if (file.fieldname === 'recommendation') payload.recommendationUrl = uploaded.secure_url;
@@ -41,19 +52,19 @@ const getSingleApplication = async (id: string) => {
 };
 
 const updateApplication = async (
-  id: string, 
-  payload: Prisma.EducationAidApplicationUpdateInput, 
-  files?: IFile[]
+  id: string,
+  payload: Prisma.EducationAidApplicationUpdateInput,
+  files?: Express.Multer.File[]
 ) => {
   const existing = await prisma.educationAidApplication.findUnique({ where: { id } });
   if (!existing) throw new Error('Scholarship application not found');
 
   if (files && files.length) {
     for (const file of files) {
-      const uploaded: any = await FileUploadHelper.uploadToCloudinary(file);
-      if (file.fieldname === 'photo') payload.photoUrl = uploaded.secure_url as any;
-      if (file.fieldname === 'marksheet') payload.marksheetUrl = uploaded.secure_url as any;
-      if (file.fieldname === 'recommendation') payload.recommendationUrl = uploaded.secure_url as any;
+      const uploaded = await uploadToCloudinary(file);
+      if (file.fieldname === 'photo') payload.photoUrl = uploaded.secure_url;
+      if (file.fieldname === 'marksheet') payload.marksheetUrl = uploaded.secure_url;
+      if (file.fieldname === 'recommendation') payload.recommendationUrl = uploaded.secure_url;
     }
   }
 
