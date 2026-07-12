@@ -9,7 +9,7 @@ interface IFile {
 
 interface IGalleryPayload {
   title: string;
-  category?: string;
+  categoryId?: string;
   image?: string;
 }
 
@@ -26,19 +26,25 @@ const createGallery = async (payload: IGalleryPayload, file?: IFile) => {
   return await prisma.gallery.create({
     data: {
       title: payload.title,
-      category: payload.category,
+      categoryId: payload.categoryId || null,
       image: imageUrl,
     },
+    include: { category: true },
   });
 };
+
 const getAllGalleries = async () => {
   return await prisma.gallery.findMany({
     orderBy: { createdAt: 'desc' },
+    include: { category: true },
   });
 };
 
 const getGalleryById = async (id: string) => {
-  const gallery = await prisma.gallery.findUnique({ where: { id } });
+  const gallery = await prisma.gallery.findUnique({
+    where: { id },
+    include: { category: true },
+  });
   if (!gallery) throw new Error('Gallery not found');
   return gallery;
 };
@@ -54,7 +60,12 @@ const updateGallery = async (id: string, payload: Partial<IGalleryPayload>, file
 
   return await prisma.gallery.update({
     where: { id },
-    data: payload,
+    data: {
+      title: payload.title,
+      categoryId: payload.categoryId,
+      image: payload.image,
+    },
+    include: { category: true },
   });
 };
 

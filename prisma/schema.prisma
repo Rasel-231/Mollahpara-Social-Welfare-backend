@@ -123,14 +123,29 @@ model Post {
 }
 
 model Gallery {
-  id        String   @id @default(uuid()) @db.Uuid
-  title     String
-  image     String
-  category  String?
+  id         String           @id @default(uuid()) @db.Uuid
+  title      String
+  image      String
+  categoryId String?          @db.Uuid
+  category   GalleryCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@map("galleries")
+}
+
+model GalleryCategory {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  label     String
+  icon      String?
+  sortOrder Int       @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  galleries Gallery[]
 
-  @@map("galleries")
+  @@map("gallery_categories")
 }
 
 model Media {
@@ -337,4 +352,21 @@ model Costing {
 
   @@index([projectName])
   @@map("costings")
+}
+
+model MonthlyChanda {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  phone     String?
+  month     String
+  year      Int
+  amount    Decimal  @db.Decimal(12, 2)
+  status    String   @default("PENDING")
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([month, year])
+  @@index([name])
+  @@map("monthly_chandas")
 }

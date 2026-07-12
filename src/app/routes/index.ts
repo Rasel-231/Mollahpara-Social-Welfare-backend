@@ -5,6 +5,7 @@ import { UserRoutes } from '../modules/user/user.route';
 import { NewsRoutes } from '../modules/news/news.route';
 import { FundRoutes } from '../modules/fund/fund.route';
 import { GalleryRoutes } from '../modules/gallery/gallery.route';
+import { GalleryCategoryRoutes } from '../modules/galleryCategory/galleryCategory.route';
 import { UpcomingEventRoutes } from '../modules/upcomingEvent/upcomingEvent.route';
 import { ComplainRoutes } from '../modules/complain/complain.route';
 import { ContactRoutes } from '../modules/contact/contact.route';
@@ -13,6 +14,8 @@ import { BloodRequestRoutes } from '../modules/bloodRequest/bloodRequest.route';
 import { ScholarshipRoutes } from '../modules/scholarship/scholarship.route';
 import { VideoRoutes } from '../modules/video/video.route';
 import { CostingRoutes } from '../modules/costing/costing.route';
+import { MonthlyChandaRoutes } from '../modules/monthlyChanda/monthlyChanda.route';
+import { ProjectFundRoutes } from '../modules/projectFund/projectFund.route';
 
 const router = Router();
 
@@ -24,12 +27,15 @@ const moduleRoutes = [
   { path: '/news', routes: NewsRoutes },
   { path: '/funds', routes: FundRoutes },
   { path: '/gallery', routes: GalleryRoutes },
+  { path: '/gallery-categories', routes: GalleryCategoryRoutes },
   { path: '/events', routes: UpcomingEventRoutes },
   { path: '/complains', routes: ComplainRoutes },
   { path: '/contacts', routes: ContactRoutes },
   { path: '/scholarships', routes: ScholarshipRoutes },
   { path: '/videos', routes: VideoRoutes },
   { path: '/costings', routes: CostingRoutes },
+  { path: '/monthly-chandas', routes: MonthlyChandaRoutes },
+  { path: '/project-funds', routes: ProjectFundRoutes },
 ];
 
 moduleRoutes.forEach(({ path, routes }) => {
