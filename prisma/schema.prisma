@@ -202,12 +202,15 @@ model Transaction {
   status        DonationStatus  @default(PENDING)
   memberId      String?         @db.Uuid
   member        User?           @relation(fields: [memberId], references: [id])
+  costingId     String?         @db.Uuid
+  costing       Costing?        @relation(fields: [costingId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([transactionId])
   @@index([memberId])
+  @@index([costingId])
   @@map("transactions")
 }
 
@@ -321,4 +324,17 @@ model EducationAidApplication {
 
   @@index([studentName, className])
   @@map("scholarships")
+}
+
+model Costing {
+  id          String        @id @default(uuid()) @db.Uuid
+  projectName String
+  description String?       @db.Text
+  costing     Decimal       @db.Decimal(12, 2)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  transactions Transaction[]
+
+  @@index([projectName])
+  @@map("costings")
 }

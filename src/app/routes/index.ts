@@ -12,6 +12,7 @@ import { DonorRoutes } from '../modules/bloodDonor/donor.route';
 import { BloodRequestRoutes } from '../modules/bloodRequest/bloodRequest.route';
 import { ScholarshipRoutes } from '../modules/scholarship/scholarship.route';
 import { VideoRoutes } from '../modules/video/video.route';
+import { CostingRoutes } from '../modules/costing/costing.route';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ const moduleRoutes = [
   { path: '/contacts', routes: ContactRoutes },
   { path: '/scholarships', routes: ScholarshipRoutes },
   { path: '/videos', routes: VideoRoutes },
+  { path: '/costings', routes: CostingRoutes },
 ];
 
 moduleRoutes.forEach(({ path, routes }) => {
