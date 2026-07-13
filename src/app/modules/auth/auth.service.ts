@@ -10,6 +10,7 @@ import {
 } from './auth.interface';
 import { prisma } from '../../../shared/prisma';
 import config from '../../../config';
+import AppError from '../../../errors/AppError';
 
 const hashToken = (token: string): string => {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -35,13 +36,13 @@ const loginMember = async (payload: ILoginPayload): Promise<IAuthResponse> => {
   });
 
   if (!user) {
-    throw new Error('Invalid email or password');
+    throw new AppError(401, 'Invalid email or password');
   }
 
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
   if (!isPasswordValid) {
-    throw new Error('Invalid email or password');
+    throw new AppError(401, 'Invalid email or password');
   }
 
   const accessToken = jwt.sign(
@@ -85,12 +86,12 @@ const refreshAccessToken = async (
   });
 
   if (!storedToken) {
-    throw new Error('Invalid refresh token');
+    throw new AppError(401, 'Invalid refresh token');
   }
 
   if (storedToken.expiresAt < new Date()) {
     await prisma.refreshToken.delete({ where: { id: storedToken.id } });
-    throw new Error('Refresh token has expired');
+    throw new AppError(401, 'Refresh token has expired');
   }
 
   const accessToken = jwt.sign(
@@ -122,7 +123,7 @@ const changePassword = async (
   });
 
   if (!user) {
-    throw new Error('User not found');
+    throw new AppError(404, 'User not found');
   }
 
   const isPasswordValid = await bcrypt.compare(
@@ -131,7 +132,7 @@ const changePassword = async (
   );
 
   if (!isPasswordValid) {
-    throw new Error('Current password is incorrect');
+    throw new AppError(401, 'Current password is incorrect');
   }
 
   const hashedPassword = await bcrypt.hash(
@@ -194,14 +195,14 @@ const resetPassword = async (
   });
 
   if (!resetTokenRecord) {
-    throw new Error('Invalid or expired reset token');
+    throw new AppError(401, 'Invalid or expired reset token');
   }
 
   if (resetTokenRecord.expiresAt < new Date()) {
     await prisma.passwordResetToken.delete({
       where: { id: resetTokenRecord.id },
     });
-    throw new Error('Reset token has expired');
+    throw new AppError(401, 'Reset token has expired');
   }
 
   const hashedPassword = await bcrypt.hash(
@@ -239,7 +240,7 @@ const getMyProfile = async (userId: string) => {
   });
 
   if (!user) {
-    throw new Error('User not found');
+    throw new AppError(404, 'User not found');
   }
 
   return user;

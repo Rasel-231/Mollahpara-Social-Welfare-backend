@@ -1,5 +1,6 @@
 import { prisma } from '../../../shared/prisma';
 import { FileUploadHelper } from '../../../shared/fileUploader';
+import AppError from '../../../errors/AppError';
 
 interface IFile {
   path: string;
@@ -20,7 +21,7 @@ const createGallery = async (payload: IGalleryPayload, file?: IFile) => {
     imageUrl = uploadedImage.secure_url;
   }
   if (!imageUrl) {
-    throw new Error("Image is required for gallery creation");
+    throw new AppError(400, 'Image is required for gallery creation');
   }
 
   return await prisma.gallery.create({
@@ -45,13 +46,13 @@ const getGalleryById = async (id: string) => {
     where: { id },
     include: { category: true },
   });
-  if (!gallery) throw new Error('Gallery not found');
+  if (!gallery) throw new AppError(404, 'Gallery not found');
   return gallery;
 };
 
 const updateGallery = async (id: string, payload: Partial<IGalleryPayload>, file?: IFile) => {
   const existing = await prisma.gallery.findUnique({ where: { id } });
-  if (!existing) throw new Error('Gallery not found');
+  if (!existing) throw new AppError(404, 'Gallery not found');
 
   if (file) {
     const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
@@ -71,7 +72,7 @@ const updateGallery = async (id: string, payload: Partial<IGalleryPayload>, file
 
 const deleteGallery = async (id: string) => {
   const existing = await prisma.gallery.findUnique({ where: { id } });
-  if (!existing) throw new Error('Gallery not found');
+  if (!existing) throw new AppError(404, 'Gallery not found');
 
   return await prisma.gallery.delete({ where: { id } });
 };

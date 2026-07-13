@@ -1,5 +1,6 @@
 import { prisma } from '../../../shared/prisma';
 import { FileUploadHelper } from '../../../shared/fileUploader';
+import AppError from '../../../errors/AppError';
 
 interface IFile {
   path: string;
@@ -67,13 +68,13 @@ const getNewsById = async (id: string) => {
     where: { id },
     include: { author: { select: { id: true, name: true, image: true } } },
   });
-  if (!news) throw new Error('News not found');
+  if (!news) throw new AppError(404, 'News not found');
   return news;
 };
 
 const updateNews = async (id: string, payload: Partial<INewsPayload>, file?: IFile) => {
   const existing = await prisma.post.findUnique({ where: { id } });
-  if (!existing) throw new Error('News not found');
+  if (!existing) throw new AppError(404, 'News not found');
 
   if (file) {
     const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
@@ -96,7 +97,7 @@ const updateNews = async (id: string, payload: Partial<INewsPayload>, file?: IFi
 
 const deleteNews = async (id: string) => {
   const existing = await prisma.post.findUnique({ where: { id } });
-  if (!existing) throw new Error('News not found');
+  if (!existing) throw new AppError(404, 'News not found');
 
   return await prisma.post.delete({ where: { id } });
 };

@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 interface IProjectFundPayload {
   title: string;
@@ -19,19 +20,19 @@ const getAllFunds = async () => {
 
 const getFundById = async (id: string) => {
   const fund = await prisma.fund.findUnique({ where: { id } });
-  if (!fund) throw new Error('Project fund not found');
+  if (!fund) throw new AppError(404, 'Project fund not found');
   return fund;
 };
 
 const updateFund = async (id: string, payload: Partial<IProjectFundPayload>) => {
   const existing = await prisma.fund.findUnique({ where: { id } });
-  if (!existing) throw new Error('Project fund not found');
+  if (!existing) throw new AppError(404, 'Project fund not found');
   return await prisma.fund.update({ where: { id }, data: payload });
 };
 
 const deleteFund = async (id: string) => {
   const existing = await prisma.fund.findUnique({ where: { id } });
-  if (!existing) throw new Error('Project fund not found');
+  if (!existing) throw new AppError(404, 'Project fund not found');
   return await prisma.fund.delete({ where: { id } });
 };
 

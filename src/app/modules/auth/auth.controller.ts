@@ -3,14 +3,22 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+};
+
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.loginMember(req.body);
 
-
   res.cookie('accessToken', result.accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    ...cookieOptions,
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.cookie('refreshToken', result.refreshToken, {
+    ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -18,28 +26,48 @@ const login = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: 'Login successful',
-    data: result,
+    data: { member: result.member },
   });
 });
 
 
 const refreshAccessToken = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await AuthService.refreshAccessToken(
-      req.body.refreshToken
-    );
+    const refreshTokenValue = req.cookies?.refreshToken;
+
+    if (!refreshTokenValue) {
+      return res.status(401).json({
+        success: false,
+        statusCode: 401,
+        message: 'Refresh token not found in cookies',
+      });
+    }
+
+    const result = await AuthService.refreshAccessToken(refreshTokenValue);
+
+    res.cookie('accessToken', result.accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    });
 
     sendResponse(res, {
       statusCode: 200,
       success: true,
       message: 'Access token refreshed successfully',
-      data: result,
+      data: {},
     });
   }
 );
 
 const logout = catchAsync(async (req: Request, res: Response) => {
-  await AuthService.logout(req.body.refreshToken);
+  const refreshTokenValue = req.cookies?.refreshToken;
+
+  if (refreshTokenValue) {
+    await AuthService.logout(refreshTokenValue);
+  }
+
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
 
   sendResponse(res, {
     statusCode: 200,

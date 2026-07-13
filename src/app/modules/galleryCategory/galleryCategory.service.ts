@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 interface IGalleryCategoryPayload {
   name: string;
@@ -9,7 +10,7 @@ interface IGalleryCategoryPayload {
 
 const createCategory = async (payload: IGalleryCategoryPayload) => {
   const existing = await prisma.galleryCategory.findUnique({ where: { name: payload.name } });
-  if (existing) throw new Error('Category name already exists');
+  if (existing) throw new AppError(409, 'Category name already exists');
 
   return await prisma.galleryCategory.create({ data: payload });
 };
@@ -22,17 +23,17 @@ const getAllCategories = async () => {
 
 const getCategoryById = async (id: string) => {
   const category = await prisma.galleryCategory.findUnique({ where: { id } });
-  if (!category) throw new Error('Category not found');
+  if (!category) throw new AppError(404, 'Category not found');
   return category;
 };
 
 const updateCategory = async (id: string, payload: Partial<IGalleryCategoryPayload>) => {
   const existing = await prisma.galleryCategory.findUnique({ where: { id } });
-  if (!existing) throw new Error('Category not found');
+  if (!existing) throw new AppError(404, 'Category not found');
 
   if (payload.name && payload.name !== existing.name) {
     const nameTaken = await prisma.galleryCategory.findUnique({ where: { name: payload.name } });
-    if (nameTaken) throw new Error('Category name already exists');
+    if (nameTaken) throw new AppError(409, 'Category name already exists');
   }
 
   return await prisma.galleryCategory.update({ where: { id }, data: payload });
@@ -40,7 +41,7 @@ const updateCategory = async (id: string, payload: Partial<IGalleryCategoryPaylo
 
 const deleteCategory = async (id: string) => {
   const existing = await prisma.galleryCategory.findUnique({ where: { id } });
-  if (!existing) throw new Error('Category not found');
+  if (!existing) throw new AppError(404, 'Category not found');
 
   return await prisma.galleryCategory.delete({ where: { id } });
 };

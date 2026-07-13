@@ -88,6 +88,17 @@ const rejectUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const changeRole = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.changeRole(req.params.id as string, req.body.role);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User role changed successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getAllUsers,
@@ -96,4 +107,5 @@ export const UserController = {
   deleteUser,
   approveUser,
   rejectUser,
+  changeRole,
 };

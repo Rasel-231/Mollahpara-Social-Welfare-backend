@@ -24,7 +24,7 @@ router.post(
   ScholarshipController.createApplication,
 );
 
-router.get('/', ScholarshipController.getAllApplications);
+router.get('/', auth('ADMIN'), ScholarshipController.getAllApplications);
 router.get('/:id', auth('ADMIN'), ScholarshipController.getSingleApplication);
 router.patch(
   '/:id',

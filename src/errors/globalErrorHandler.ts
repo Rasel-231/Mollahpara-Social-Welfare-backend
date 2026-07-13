@@ -42,7 +42,7 @@ const globalErrorHandler = (
     statusCode,
     message,
     errors,
-    stack: config.nodeEnv === 'development' ? err.stack : undefined,
+    stack: config.node_env === 'development' ? err.stack : undefined,
   });
 };
 

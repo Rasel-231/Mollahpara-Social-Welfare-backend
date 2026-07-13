@@ -1,4 +1,5 @@
 import prisma from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createEvent = async (payload: any) => {
   const event = await prisma.upcomingEvent.create({ data: payload });
@@ -18,7 +19,7 @@ const getEventById = async (id: string) => {
     where: { id },
     include: { creator: { select: { id: true, name: true } } },
   });
-  if (!event) throw new Error('Event not found');
+  if (!event) throw new AppError(404, 'Event not found');
   return event;
 };
 

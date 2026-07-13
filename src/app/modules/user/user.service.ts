@@ -3,6 +3,7 @@ import config from '../../../config';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import { prisma } from '../../../shared/prisma';
 import { FileUploadHelper } from '../../../shared/fileUploader';
+import AppError from '../../../errors/AppError';
 
 interface IFile {
   path: string;
@@ -19,7 +20,6 @@ interface IUserPayload {
   image?: string;
   village: string;
   bloodGroup?: string;
-  role?: string;
   memberType?: string;
   nid?: string;
 }
@@ -46,7 +46,7 @@ const createUser = async (payload: IUserPayload, file?: IFile) => {
     payload.image = uploadedImage.secure_url;
 
   }
-  const { password, images, ...userData } = payload as any;
+  const { password, images, role, ...userData } = payload as any;
 
   const saltRounds = Number(config.salt_round) || 12;
   const hashedPassword = await bcrypt.hash(password as string, saltRounds);
@@ -116,7 +116,7 @@ const getUserById = async (id: string) => {
     },
   });
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new AppError(404, 'User not found');
   return user;
 };
 
@@ -131,7 +131,7 @@ const updateUser = async (id: string, payload: Partial<IUserPayload>, file?: any
     payload.password = await bcrypt.hash(payload.password, saltRounds);
   }
 
-  const updateData: any = { ...payload };
+  const { role, ...updateData } = payload as any;
 
   return await prisma.user.update({
     where: { id },
@@ -156,7 +156,7 @@ const deleteUser = async (id: string) => {
 
 const approveUser = async (id: string) => {
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) throw new Error('User not found');
+  if (!user) throw new AppError(404, 'User not found');
 
   return await prisma.user.update({
     where: { id },
@@ -176,7 +176,7 @@ const approveUser = async (id: string) => {
 
 const rejectUser = async (id: string) => {
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) throw new Error('User not found');
+  if (!user) throw new AppError(404, 'User not found');
 
   return await prisma.user.update({
     where: { id },
@@ -194,6 +194,26 @@ const rejectUser = async (id: string) => {
   });
 };
 
+const changeRole = async (id: string, role: string) => {
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new AppError(404, 'User not found');
+
+  return await prisma.user.update({
+    where: { id },
+    data: { role: role as any },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      designation: true,
+      image: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -202,4 +222,5 @@ export const UserService = {
   deleteUser,
   approveUser,
   rejectUser,
+  changeRole,
 };

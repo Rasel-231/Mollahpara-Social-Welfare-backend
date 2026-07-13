@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createDonor = async (payload: any) => {
   const donor = await prisma.donor.create({
@@ -23,7 +24,7 @@ const getDonorById = async (id: string) => {
   });
 
   if (!donor) {
-    throw new Error('Donor not found');
+    throw new AppError(404, 'Donor not found');
   }
 
   return donor;
@@ -32,7 +33,7 @@ const getDonorById = async (id: string) => {
 const updateDonor = async (id: string, payload: any) => {
   const existing = await prisma.donor.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Donor not found');
+    throw new AppError(404, 'Donor not found');
   }
 
   const donor = await prisma.donor.update({
@@ -46,7 +47,7 @@ const updateDonor = async (id: string, payload: any) => {
 const deleteDonor = async (id: string) => {
   const existing = await prisma.donor.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Donor not found');
+    throw new AppError(404, 'Donor not found');
   }
 
   const donor = await prisma.donor.delete({

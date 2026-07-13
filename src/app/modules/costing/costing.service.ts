@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createCosting = async (payload: any) => {
   const result = await prisma.costing.create({ data: payload });
@@ -19,7 +20,7 @@ const getCostingById = async (id: string) => {
     include: { transactions: true },
   });
   if (!result) {
-    throw new Error('Costing not found');
+    throw new AppError(404, 'Costing not found');
   }
   return result;
 };
@@ -27,7 +28,7 @@ const getCostingById = async (id: string) => {
 const updateCosting = async (id: string, payload: any) => {
   const existing = await prisma.costing.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Costing not found');
+    throw new AppError(404, 'Costing not found');
   }
   const result = await prisma.costing.update({
     where: { id },
@@ -39,7 +40,7 @@ const updateCosting = async (id: string, payload: any) => {
 const deleteCosting = async (id: string) => {
   const existing = await prisma.costing.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Costing not found');
+    throw new AppError(404, 'Costing not found');
   }
   const result = await prisma.costing.delete({ where: { id } });
   return result;

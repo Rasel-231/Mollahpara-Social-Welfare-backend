@@ -8,7 +8,7 @@ const router = Router();
 
 router.post(
   '/',
-  auth('admin'),
+  auth('ADMIN'),
   validateRequest(UpcomingEventValidation.create),
   UpcomingEventController.createEvent
 );
@@ -16,10 +16,10 @@ router.get('/', UpcomingEventController.getAllEvents);
 router.get('/:id', UpcomingEventController.getEventById);
 router.patch(
   '/:id',
-  auth('admin'),
+  auth('ADMIN'),
   validateRequest(UpcomingEventValidation.update),
   UpcomingEventController.updateEvent
 );
-router.delete('/:id', auth('admin'), UpcomingEventController.deleteEvent);
+router.delete('/:id', auth('ADMIN'), UpcomingEventController.deleteEvent);
 
 export const UpcomingEventRoutes = router;

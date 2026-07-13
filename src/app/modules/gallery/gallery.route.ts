@@ -25,7 +25,7 @@ router.get('/:id', GalleryController.getGalleryById);
 
 router.patch(
   '/:id',
-  // auth('ADMIN'),
+  auth('ADMIN'),
   FileUploadHelper.upload.single('file'),
   (req, res, next) => {
     if (req.body.data) {

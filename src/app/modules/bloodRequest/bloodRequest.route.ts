@@ -15,7 +15,7 @@ router.get('/', BloodRequestController.getAllBloodRequests);
 router.get('/:id', BloodRequestController.getBloodRequestById);
 router.patch(
   '/:id',
-  // auth('ADMIN', 'MODERATOR'),
+  auth('ADMIN', 'MODERATOR'),
   validateRequest(BloodRequestValidation.update),
   BloodRequestController.updateBloodRequest,
 );

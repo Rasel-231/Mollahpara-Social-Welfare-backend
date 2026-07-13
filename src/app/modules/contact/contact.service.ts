@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createContact = async (payload: any) => {
   const contact = await prisma.contact.create({
@@ -22,7 +23,7 @@ const getContactById = async (id: string) => {
   });
 
   if (!contact) {
-    throw new Error('Contact not found');
+    throw new AppError(404, 'Contact not found');
   }
 
   return contact;
@@ -31,7 +32,7 @@ const getContactById = async (id: string) => {
 const updateContact = async (id: string, payload: any) => {
   const existing = await prisma.contact.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Contact not found');
+    throw new AppError(404, 'Contact not found');
   }
 
   const contact = await prisma.contact.update({
@@ -45,7 +46,7 @@ const updateContact = async (id: string, payload: any) => {
 const deleteContact = async (id: string) => {
   const existing = await prisma.contact.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Contact not found');
+    throw new AppError(404, 'Contact not found');
   }
 
   const contact = await prisma.contact.delete({

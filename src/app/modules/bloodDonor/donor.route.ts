@@ -15,7 +15,7 @@ router.get('/', DonorController.getAllDonors);
 router.get('/:id', DonorController.getDonorById);
 router.patch(
   '/:id',
-  // auth('ADMIN', 'MODERATOR'),
+  auth('ADMIN', 'MODERATOR'),
   validateRequest(DonorValidation.update),
   DonorController.updateDonor,
 );

@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createFund = async (payload: any) => {
   const fund = await prisma.transaction.create({ data: payload });
@@ -13,7 +14,7 @@ const getAllFunds = async () => {
 const getFundById = async (id: string) => {
   const fund = await prisma.transaction.findUnique({ where: { id } });
   if (!fund) {
-    throw new Error('Fund not found');
+    throw new AppError(404, 'Fund not found');
   }
   return fund;
 };
@@ -21,7 +22,7 @@ const getFundById = async (id: string) => {
 const updateFund = async (id: string, payload: any) => {
   const existing = await prisma.transaction.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Fund not found');
+    throw new AppError(404, 'Fund not found');
   }
 
   const fund = await prisma.transaction.update({ where: { id }, data: payload });
@@ -31,7 +32,7 @@ const updateFund = async (id: string, payload: any) => {
 const deleteFund = async (id: string) => {
   const existing = await prisma.transaction.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Fund not found');
+    throw new AppError(404, 'Fund not found');
   }
 
   const fund = await prisma.transaction.delete({ where: { id } });

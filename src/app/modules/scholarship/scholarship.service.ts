@@ -1,6 +1,7 @@
 import { prisma } from '../../../shared/prisma';
 import { FileUploadHelper } from '../../../shared/fileUploader';
 import { Prisma } from '@prisma/client';
+import AppError from '../../../errors/AppError';
 
 interface ICloudinaryUploadResult {
   secure_url: string;
@@ -20,7 +21,7 @@ const createApplication = async (
   const missingFields = REQUIRED_FILE_FIELDS.filter((field) => !uploadedFields.has(field));
 
   if (missingFields.length) {
-    throw new Error(`Missing required document(s): ${missingFields.join(', ')}`);
+    throw new AppError(400, `Missing required document(s): ${missingFields.join(', ')}`);
   }
 
   if (files && files.length) {
@@ -47,7 +48,7 @@ const getSingleApplication = async (id: string) => {
   const application = await prisma.educationAidApplication.findUnique({
     where: { id },
   });
-  if (!application) throw new Error('Scholarship application not found');
+  if (!application) throw new AppError(404, 'Scholarship application not found');
   return application;
 };
 
@@ -57,7 +58,7 @@ const updateApplication = async (
   files?: Express.Multer.File[]
 ) => {
   const existing = await prisma.educationAidApplication.findUnique({ where: { id } });
-  if (!existing) throw new Error('Scholarship application not found');
+  if (!existing) throw new AppError(404, 'Scholarship application not found');
 
   if (files && files.length) {
     for (const file of files) {
@@ -76,7 +77,7 @@ const updateApplication = async (
 
 const deleteApplication = async (id: string) => {
   const existing = await prisma.educationAidApplication.findUnique({ where: { id } });
-  if (!existing) throw new Error('Scholarship application not found');
+  if (!existing) throw new AppError(404, 'Scholarship application not found');
   return await prisma.educationAidApplication.delete({ where: { id } });
 };
 

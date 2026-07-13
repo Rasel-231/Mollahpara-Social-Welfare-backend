@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import AppError from '../../../errors/AppError';
 
 const createBloodRequest = async (payload: any) => {
 
@@ -34,7 +35,7 @@ const getBloodRequestById = async (id: string) => {
   });
 
   if (!bloodRequest) {
-    throw new Error('Blood request not found');
+    throw new AppError(404, 'Blood request not found');
   }
 
   return bloodRequest;
@@ -43,7 +44,7 @@ const getBloodRequestById = async (id: string) => {
 const updateBloodRequest = async (id: string, payload: any) => {
   const existing = await prisma.bloodRequest.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Blood request not found');
+    throw new AppError(404, 'Blood request not found');
   }
 
   const dataToUpdate = {
@@ -61,7 +62,7 @@ const updateBloodRequest = async (id: string, payload: any) => {
 const deleteBloodRequest = async (id: string) => {
   const existing = await prisma.bloodRequest.findUnique({ where: { id } });
   if (!existing) {
-    throw new Error('Blood request not found');
+    throw new AppError(404, 'Blood request not found');
   }
 
   return await prisma.bloodRequest.delete({

@@ -3,11 +3,12 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import router from './app/routes';
 import globalErrorHandler from './errors/globalErrorHandler';
+import config from './config';
 
 const app: Application = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: config.frontend_url,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],

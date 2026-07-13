@@ -9,7 +9,6 @@ const create = z.object({
     designation: z.string().optional(),
     image: z.string().optional(),
     bloodGroup: z.string().optional(),
-    role: z.string().optional(),
     memberType: z.string().optional(),
     nid: z.string().optional(),
   }),
@@ -24,13 +23,19 @@ const update = z.object({
     designation: z.string().optional(),
     image: z.string().optional(),
     bloodGroup: z.string().optional(),
-    role: z.string().optional(),
     memberType: z.string().optional(),
     nid: z.string().optional(),
+  }),
+});
+
+const changeRole = z.object({
+  body: z.object({
+    role: z.enum(['ADMIN', 'MEMBER', 'MODERATOR'], { message: 'Role must be ADMIN, MEMBER, or MODERATOR' }),
   }),
 });
 
 export const UserValidation = {
   create,
   update,
+  changeRole,
 };

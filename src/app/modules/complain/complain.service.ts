@@ -1,5 +1,6 @@
 import { prisma } from '../../../shared/prisma';
 import { IComplain } from './complain.interface';
+import AppError from '../../../errors/AppError';
 
 
 const createComplain = async (data: IComplain) => {
@@ -19,13 +20,13 @@ const getSingleComplain = async (id: string) => {
     include: { user: { select: { id: true, name: true, email: true } } },
   });
 
-  if (!complain) throw new Error('Complain not found');
+  if (!complain) throw new AppError(404, 'Complain not found');
   return complain;
 };
 
 const updateComplain = async (id: string, data: Partial<IComplain>) => {
   const existing = await prisma.complain.findUnique({ where: { id } });
-  if (!existing) throw new Error('Complain not found');
+  if (!existing) throw new AppError(404, 'Complain not found');
 
   return await prisma.complain.update({
     where: { id },
@@ -35,7 +36,7 @@ const updateComplain = async (id: string, data: Partial<IComplain>) => {
 
 const deleteComplain = async (id: string) => {
   const existing = await prisma.complain.findUnique({ where: { id } });
-  if (!existing) throw new Error('Complain not found');
+  if (!existing) throw new AppError(404, 'Complain not found');
 
   return await prisma.complain.delete({ where: { id } });
 };
