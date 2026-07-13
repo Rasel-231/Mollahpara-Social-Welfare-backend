@@ -42,7 +42,6 @@ const getBloodRequestById = catchAsync(async (req: Request, res: Response) => {
 
 const updateBloodRequest = catchAsync(async (req: Request, res: Response) => {
   const result = await BloodRequestService.updateBloodRequest(req.params.id as string, req.body);
-  console.log("user params", req.params.id)
 
   sendResponse(res, {
     statusCode: 200,

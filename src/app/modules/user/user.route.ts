@@ -26,7 +26,7 @@ router.post(
   FileUploadHelper.upload.single('file'),
   (req, res, next) => {
     if (req.body.data) {
-      req.body = JSON.parse(req.body.data);
+      try { req.body = JSON.parse(req.body.data); } catch { return res.status(400).json({ success: false, statusCode: 400, message: 'Invalid JSON in request body' }); }
     }
     next();
   },
@@ -34,8 +34,8 @@ router.post(
   UserController.createUser,
 );
 
-// Get All Users (Any logged-in user)
-router.get('/', auth(), UserController.getAllUsers);
+// Get All Users (Admin only)
+router.get('/', auth('ADMIN'), UserController.getAllUsers);
 
 // Get User By Id (Any logged-in user)
 router.get('/:id', auth(), UserController.getUserById);
@@ -48,7 +48,7 @@ router.patch(
   FileUploadHelper.upload.single('file'),
   (req, res, next) => {
     if (req.body.data) {
-      req.body = JSON.parse(req.body.data);
+      try { req.body = JSON.parse(req.body.data); } catch { return res.status(400).json({ success: false, statusCode: 400, message: 'Invalid JSON in request body' }); }
     }
     next();
   },

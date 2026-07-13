@@ -91,7 +91,20 @@ const getAllUsers = async (params: IUserFilter) => {
       skip,
       take: limitNum,
       orderBy: { [sortField]: sortDir },
-
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        designation: true,
+        image: true,
+        village: true,
+        bloodGroup: true,
+        role: true,
+        isActive: true,
+        memberType: true,
+        createdAt: true,
+      },
     }),
     prisma.user.count({ where }),
   ]);
