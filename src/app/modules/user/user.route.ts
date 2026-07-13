@@ -35,9 +35,9 @@ router.post(
 );
 
 // Get All Users (Admin only)
-router.get('/', auth('ADMIN'), UserController.getAllUsers);
+router.get('/', UserController.getAllUsers);
 
-// Get User By Id (Any logged-in user)
+
 router.get('/:id', auth(), UserController.getUserById);
 
 // Update User (Admin or Owner)
