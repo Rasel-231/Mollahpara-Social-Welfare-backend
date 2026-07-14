@@ -19,7 +19,7 @@ const ownerOrAdmin = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-// Create User (Admin only)
+
 router.post(
   '/create',
   auth('ADMIN'),
@@ -34,13 +34,12 @@ router.post(
   UserController.createUser,
 );
 
-// Get All Users (Admin only)
 router.get('/', UserController.getAllUsers);
 
 
 router.get('/:id', UserController.getUserById);
 
-// Update User (Admin or Owner)
+
 router.patch(
   '/:id',
   auth(),
@@ -56,15 +55,15 @@ router.patch(
   UserController.updateUser,
 );
 
-// Delete User (Admin only)
+
 router.delete('/:id', auth('ADMIN'), UserController.deleteUser);
 
 router.patch('/:id/approve', auth('ADMIN'), UserController.approveUser);
 
-// Reject User (Admin only)
+
 router.patch('/:id/reject', auth('ADMIN'), UserController.rejectUser);
 
-// Change User Role (Admin only)
+
 router.patch(
   '/:id/role',
   auth('ADMIN'),
