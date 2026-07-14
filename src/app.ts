@@ -8,7 +8,7 @@ import config from './config';
 const app: Application = express();
 
 app.use(cors({
-  origin: config.frontend_url || "http://localhost:3000/api/v1",
+  origin: config.frontend_url,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
