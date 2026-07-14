@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 interface IMonthlyChandaPayload {
@@ -15,8 +16,13 @@ const createChanda = async (payload: IMonthlyChandaPayload) => {
   return await prisma.monthlyChanda.create({ data: payload });
 };
 
-const getAllChandas = async () => {
-  return await prisma.monthlyChanda.findMany({ orderBy: { createdAt: 'desc' } });
+const getAllChandas = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'phone', 'month', 'note']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
+  return await prisma.monthlyChanda.findMany({ where, orderBy: { createdAt: 'desc' } });
 };
 
 const getChandaById = async (id: string) => {

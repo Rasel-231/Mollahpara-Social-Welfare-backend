@@ -9,7 +9,7 @@ const createChanda = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllChandas = catchAsync(async (req: Request, res: Response) => {
-  const result = await MonthlyChandaService.getAllChandas();
+  const result = await MonthlyChandaService.getAllChandas({ searchTerm: req.query.search as string });
   sendResponse(res, { statusCode: 200, success: true, message: 'Chandas retrieved successfully', data: result });
 });
 

@@ -16,7 +16,7 @@ const createGallery = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllGalleries = catchAsync(async (req: Request, res: Response) => {
-  const result = await GalleryService.getAllGalleries();
+  const result = await GalleryService.getAllGalleries({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

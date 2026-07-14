@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 const createCosting = async (payload: any) => {
@@ -6,8 +7,14 @@ const createCosting = async (payload: any) => {
   return result;
 };
 
-const getAllCostings = async () => {
+const getAllCostings = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['projectName', 'description']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   const result = await prisma.costing.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
     include: { transactions: true },
   });

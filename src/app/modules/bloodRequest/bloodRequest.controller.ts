@@ -19,7 +19,7 @@ const createBloodRequest = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllBloodRequests = catchAsync(async (req: Request, res: Response) => {
-  const result = await BloodRequestService.getAllBloodRequests();
+  const result = await BloodRequestService.getAllBloodRequests({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

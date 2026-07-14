@@ -15,7 +15,7 @@ const createFund = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFunds = catchAsync(async (req: Request, res: Response) => {
-  const result = await FundService.getAllFunds();
+  const result = await FundService.getAllFunds({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

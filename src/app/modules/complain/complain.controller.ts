@@ -14,7 +14,7 @@ const createComplain = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllComplains = catchAsync(async (req: Request, res: Response) => {
-  const result = await ComplainService.getAllComplains();
+  const result = await ComplainService.getAllComplains({ searchTerm: req.query.search as string });
   sendResponse(res, {
     statusCode: 200,
     success: true,

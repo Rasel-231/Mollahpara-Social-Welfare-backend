@@ -1,4 +1,5 @@
 import prisma from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 const createEvent = async (payload: any) => {
@@ -6,8 +7,14 @@ const createEvent = async (payload: any) => {
   return event;
 };
 
-const getAllEvents = async () => {
+const getAllEvents = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['title', 'description', 'location']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   const events = await prisma.upcomingEvent.findMany({
+    where,
     include: { creator: { select: { id: true, name: true } } },
     orderBy: { date: 'asc' },
   });

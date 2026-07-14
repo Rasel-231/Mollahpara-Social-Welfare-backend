@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 const createDonor = async (payload: any) => {
@@ -9,11 +10,16 @@ const createDonor = async (payload: any) => {
   return donor;
 };
 
-const getAllDonors = async () => {
+const getAllDonors = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'phone', 'address']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   const donors = await prisma.donor.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
   });
-
   return donors;
 };
 

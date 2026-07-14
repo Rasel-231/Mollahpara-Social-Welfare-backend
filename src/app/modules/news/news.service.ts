@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import { FileUploadHelper } from '../../../shared/fileUploader';
 import AppError from '../../../errors/AppError';
 
@@ -55,9 +56,14 @@ const createNews = async (payload: INewsPayload, file?: IFile) => {
   });
 };
 
-const getAllNews = async () => {
+const getAllNews = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [{ type: 'NEWS' }];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['title', 'content']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = { AND: andConditions };
   return await prisma.post.findMany({
-    where: { type: 'NEWS' },
+    where,
     include: { author: { select: { id: true, name: true, image: true } } },
     orderBy: { createdAt: 'desc' },
   });

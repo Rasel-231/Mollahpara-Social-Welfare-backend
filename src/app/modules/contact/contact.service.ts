@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 const createContact = async (payload: any) => {
@@ -9,11 +10,16 @@ const createContact = async (payload: any) => {
   return contact;
 };
 
-const getAllContacts = async () => {
+const getAllContacts = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'phone', 'village', 'designation', 'email', 'subject', 'message']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   const contacts = await prisma.contact.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
   });
-
   return contacts;
 };
 

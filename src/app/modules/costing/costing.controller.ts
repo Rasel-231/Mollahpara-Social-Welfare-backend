@@ -14,7 +14,7 @@ const createCosting = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllCostings = catchAsync(async (req: Request, res: Response) => {
-  const result = await CostingService.getAllCostings();
+  const result = await CostingService.getAllCostings({ searchTerm: req.query.search as string });
   sendResponse(res, {
     statusCode: 200,
     success: true,

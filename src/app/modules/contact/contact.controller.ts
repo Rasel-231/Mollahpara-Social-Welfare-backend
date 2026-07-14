@@ -15,7 +15,7 @@ const createContact = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllContacts = catchAsync(async (req: Request, res: Response) => {
-  const result = await ContactService.getAllContacts();
+  const result = await ContactService.getAllContacts({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

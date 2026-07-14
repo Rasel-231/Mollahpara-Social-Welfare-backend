@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 interface IGalleryCategoryPayload {
@@ -15,8 +16,14 @@ const createCategory = async (payload: IGalleryCategoryPayload) => {
   return await prisma.galleryCategory.create({ data: payload });
 };
 
-const getAllCategories = async () => {
+const getAllCategories = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'label']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   return await prisma.galleryCategory.findMany({
+    where,
     orderBy: { sortOrder: 'asc' },
   });
 };

@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import { FileUploadHelper } from '../../../shared/fileUploader';
 import { Prisma } from '@prisma/client';
 import AppError from '../../../errors/AppError';
@@ -38,8 +39,14 @@ const createApplication = async (
   });
 };
 
-const getAllApplications = async () => {
+const getAllApplications = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['studentName', 'guardianName', 'institutionName', 'className', 'rollNumber']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   return await prisma.educationAidApplication.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
   });
 };

@@ -9,7 +9,7 @@ const createCategory = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllCategories = catchAsync(async (req: Request, res: Response) => {
-  const result = await GalleryCategoryService.getAllCategories();
+  const result = await GalleryCategoryService.getAllCategories({ searchTerm: req.query.search as string });
   sendResponse(res, { statusCode: 200, success: true, message: 'Categories retrieved successfully', data: result });
 });
 

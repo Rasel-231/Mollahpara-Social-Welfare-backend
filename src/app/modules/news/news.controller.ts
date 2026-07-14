@@ -16,7 +16,7 @@ const createNews = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllNews = catchAsync(async (req: Request, res: Response) => {
-  const result = await NewsService.getAllNews();
+  const result = await NewsService.getAllNews({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

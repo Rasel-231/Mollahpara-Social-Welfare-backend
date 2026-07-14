@@ -15,7 +15,7 @@ const createEvent = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllEvents = catchAsync(async (req: Request, res: Response) => {
-  const result = await UpcomingEventService.getAllEvents();
+  const result = await UpcomingEventService.getAllEvents({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,

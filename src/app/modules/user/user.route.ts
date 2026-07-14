@@ -38,7 +38,7 @@ router.post(
 router.get('/', UserController.getAllUsers);
 
 
-router.get('/:id', auth(), UserController.getUserById);
+router.get('/:id', UserController.getUserById);
 
 // Update User (Admin or Owner)
 router.patch(
@@ -59,7 +59,6 @@ router.patch(
 // Delete User (Admin only)
 router.delete('/:id', auth('ADMIN'), UserController.deleteUser);
 
-// Approve User (Admin only)
 router.patch('/:id/approve', auth('ADMIN'), UserController.approveUser);
 
 // Reject User (Admin only)

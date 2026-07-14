@@ -9,7 +9,7 @@ const createFund = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllFunds = catchAsync(async (req: Request, res: Response) => {
-  const result = await ProjectFundService.getAllFunds();
+  const result = await ProjectFundService.getAllFunds({ searchTerm: req.query.search as string });
   sendResponse(res, { statusCode: 200, success: true, message: 'Project funds retrieved successfully', data: result });
 });
 

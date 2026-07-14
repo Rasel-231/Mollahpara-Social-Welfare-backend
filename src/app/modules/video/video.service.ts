@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
 interface IVideoPayload {
@@ -10,8 +11,14 @@ const createVideo = async (payload: IVideoPayload) => {
   return await prisma.video.create({ data: payload });
 };
 
-const getAllVideos = async () => {
+const getAllVideos = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['title']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   return await prisma.video.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
   });
 };

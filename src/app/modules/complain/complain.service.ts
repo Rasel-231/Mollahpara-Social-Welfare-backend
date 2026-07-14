@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import { IComplain } from './complain.interface';
 import AppError from '../../../errors/AppError';
 
@@ -7,8 +8,14 @@ const createComplain = async (data: IComplain) => {
   return await prisma.complain.create({ data });
 };
 
-const getAllComplains = async () => {
+const getAllComplains = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'phone', 'village', 'subject', 'message']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   return await prisma.complain.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
     include: { user: { select: { id: true, name: true, email: true } } },
   });

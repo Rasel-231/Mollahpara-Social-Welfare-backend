@@ -21,7 +21,7 @@ const createApplication = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllApplications = catchAsync(async (req: Request, res: Response) => {
-  const result = await ScholarshipService.getAllApplications();
+  const result = await ScholarshipService.getAllApplications({ searchTerm: req.query.search as string });
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -1,4 +1,5 @@
 import { prisma } from '../../../shared/prisma';
+import { paginationHelper } from '../../../shared/paginationHelper';
 import { FileUploadHelper } from '../../../shared/fileUploader';
 import AppError from '../../../errors/AppError';
 
@@ -34,8 +35,14 @@ const createGallery = async (payload: IGalleryPayload, file?: IFile) => {
   });
 };
 
-const getAllGalleries = async () => {
+const getAllGalleries = async (params?: { searchTerm?: string }) => {
+  const { searchTerm } = params || {};
+  const andConditions: Record<string, unknown>[] = [];
+  const searchCondition = paginationHelper.searchFields(searchTerm, ['title']);
+  if (searchCondition) andConditions.push(searchCondition);
+  const where = andConditions.length > 0 ? { AND: andConditions } : {};
   return await prisma.gallery.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
     include: { category: true },
   });

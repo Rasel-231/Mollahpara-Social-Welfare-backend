@@ -15,7 +15,7 @@ const createVideo = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllVideos = catchAsync(async (req: Request, res: Response) => {
-  const result = await VideoService.getAllVideos();
+  const result = await VideoService.getAllVideos({ searchTerm: req.query.search as string });
 
   sendResponse(res, {
     statusCode: 200,
