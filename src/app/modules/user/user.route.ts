@@ -22,7 +22,6 @@ const ownerOrAdmin = (req: Request, res: Response, next: NextFunction) => {
 
 router.post(
   '/create',
-  auth('ADMIN'),
   FileUploadHelper.upload.single('file'),
   (req, res, next) => {
     if (req.body.data) {
