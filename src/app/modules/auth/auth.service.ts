@@ -39,7 +39,7 @@ const loginMember = async (payload: ILoginPayload): Promise<IAuthResponse> => {
     throw new AppError(401, 'Invalid email or password');
   }
 
-  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
+  const isPasswordValid = await bcrypt.compare(payload.password, user.password ?? '');
 
   if (!isPasswordValid) {
     throw new AppError(401, 'Invalid email or password');
@@ -128,7 +128,7 @@ const changePassword = async (
 
   const isPasswordValid = await bcrypt.compare(
     payload.currentPassword,
-    user.password
+    user.password ?? ''
   );
 
   if (!isPasswordValid) {

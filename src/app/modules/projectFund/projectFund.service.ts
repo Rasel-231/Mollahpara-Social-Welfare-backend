@@ -1,6 +1,7 @@
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
+import { ProjectStatus } from '@prisma/client';
 
 interface IProjectFundPayload {
   title: string;
@@ -8,7 +9,7 @@ interface IProjectFundPayload {
   amount: number;
   raised?: number;
   category: string;
-  status?: string;
+  status?: ProjectStatus;
 }
 
 const createFund = async (payload: IProjectFundPayload) => {

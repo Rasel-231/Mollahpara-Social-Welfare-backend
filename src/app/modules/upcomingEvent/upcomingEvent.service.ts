@@ -1,4 +1,4 @@
-import prisma from '../../../shared/prisma';
+import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 

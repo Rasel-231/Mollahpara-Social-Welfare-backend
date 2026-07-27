@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 const create = z.object({
   body: z.object({
-    title: z.string({ required_error: 'Title is required' }),
+    title: z.string({ message: 'Title is required' }),
     description: z.string().optional(),
-    date: z.string({ required_error: 'Date is required' }).datetime(),
+    date: z.string({ message: 'Date is required' }).datetime(),
     location: z.string().optional(),
     image: z.string().optional(),
-    createdBy: z.string({ required_error: 'Creator ID is required' }),
+    createdBy: z.string({ message: 'Creator ID is required' }),
   }),
 });
 
