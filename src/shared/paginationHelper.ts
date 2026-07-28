@@ -1,6 +1,6 @@
 type IOptions = {
-  page?: number;
-  limit?: number;
+  page?: number | string;
+  limit?: number | string;
   sortBy?: string;
   sortOrder?: string;
 };
@@ -23,32 +23,31 @@ const calculatePagination = (options: IOptions): IOptionsResult => {
   return { page, limit, skip, sortBy, sortOrder };
 };
 
-const searchFields = <T extends string>(
-  searchTerm: string | undefined,
-  fields: T[]
-): Record<string, unknown> | null => {
+const searchFields = (searchTerm: string | undefined, fields: string[]) => {
   if (!searchTerm) return null;
 
   return {
-    OR: fields.map(field => ({
+    OR: fields.map((field) => ({
       [field]: { contains: searchTerm, mode: 'insensitive' },
     })),
   };
 };
 
-const filterFields = <T extends Record<string, unknown>>(
-  filters: T
-): Record<string, unknown> | null => {
-  const clean = Object.entries(filters).filter(
-    ([, v]) => v !== undefined && v !== null && v !== ''
-  );
-  if (clean.length === 0) return null;
+const filterFields = (filters: Record<string, any>) => {
+  const clean: Record<string, any> = {};
 
-  return {
-    AND: clean.map(([key, value]) => ({
-      [key]: { equals: value },
-    })),
-  };
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      if (value === 'true' || value === true) clean[key] = true;
+      else if (value === 'false' || value === false) clean[key] = false;
+      else clean[key] = value;
+    }
+  });
+
+  if (Object.keys(clean).length === 0) return null;
+
+
+  return clean;
 };
 
 export const paginationHelper = {
