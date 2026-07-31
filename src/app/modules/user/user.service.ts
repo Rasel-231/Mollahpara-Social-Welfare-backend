@@ -75,15 +75,42 @@ const getAllUsers = async (params: IUserFilter) => {
   const { page: pageNum, limit: limitNum, skip, sortBy: sortField, sortOrder: sortDir } =
     paginationHelper.calculatePagination({ page, limit, sortBy, sortOrder });
 
-  const andConditions: Record<string, unknown>[] = [];
+  const andConditions: any[] = [];
 
-  const searchCondition = paginationHelper.searchFields(searchTerm, ['name', 'email', 'phone', 'village', 'designation']);
-  if (searchCondition) andConditions.push(searchCondition);
+  // সার্চ কন্ডিশন
+  if (searchTerm) {
+    andConditions.push({
+      OR: ['name', 'email', 'phone', 'village', 'designation'].map(field => ({
+        [field]: { contains: searchTerm, mode: 'insensitive' }
+      }))
+    });
+  }
 
-  const filterCondition = paginationHelper.filterFields(filterData);
-  if (filterCondition) andConditions.push(filterCondition);
+
+  if (Object.keys(filterData).length > 0) {
+    const filterCondition: any = {};
+
+    for (const [key, value] of Object.entries(filterData)) {
+      if (value !== undefined && value !== null && value !== '') {
+        if (key === 'isActive') {
+          filterCondition.isActive = value === 'true';
+        } else if (key === 'role' || key === 'bloodGroup' || key === 'memberType') {
+          filterCondition[key] = value;
+        } else {
+          filterCondition[key] = value;
+        }
+      }
+    }
+
+    if (Object.keys(filterCondition).length > 0) {
+      andConditions.push(filterCondition);
+    }
+  }
 
   const where = andConditions.length > 0 ? { AND: andConditions } : {};
+
+
+  console.log("Final Where Clause:", JSON.stringify(where, null, 2));
 
   const [data, total] = await Promise.all([
     prisma.user.findMany({
@@ -116,7 +143,6 @@ const getAllUsers = async (params: IUserFilter) => {
     meta: { page: pageNum, limit: limitNum, total },
   };
 };
-
 const getUserById = async (id: string) => {
   const user = await prisma.user.findUnique({
     where: { id },
