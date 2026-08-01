@@ -10,7 +10,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "build": "prisma generate && tsc",
-    "start": "node dist/server.js",
+    "start": "prisma migrate deploy && node dist/server.js",
     "postinstall": "prisma generate",
     "deploy": "prisma generate && prisma migrate deploy && npm run build"
   },

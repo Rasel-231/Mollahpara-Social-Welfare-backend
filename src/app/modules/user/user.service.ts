@@ -72,8 +72,26 @@ const createUser = async (payload: IUserPayload, file?: IFile) => {
 const getAllUsers = async (params: IUserFilter) => {
   const { page, limit, sortBy, sortOrder, searchTerm, ...filterData } = params;
 
-  const { page: pageNum, limit: limitNum, skip, sortBy: sortField, sortOrder: sortDir } =
+  const { page: pageNum, limit: limitNum, skip, sortBy: sortFieldRaw, sortOrder: sortOrderRaw } =
     paginationHelper.calculatePagination({ page, limit, sortBy, sortOrder });
+
+  const allowedSortFields = [
+    'id',
+    'name',
+    'email',
+    'phone',
+    'village',
+    'designation',
+    'bloodGroup',
+    'role',
+    'isActive',
+    'memberType',
+    'nid',
+    'createdAt',
+    'updatedAt',
+  ];
+  const sortField = allowedSortFields.includes(sortFieldRaw) ? sortFieldRaw : 'createdAt';
+  const sortDir = sortOrderRaw?.toLowerCase() === 'asc' ? 'asc' : 'desc';
 
   const andConditions: any[] = [];
 
@@ -108,9 +126,6 @@ const getAllUsers = async (params: IUserFilter) => {
   }
 
   const where = andConditions.length > 0 ? { AND: andConditions } : {};
-
-
-  console.log("Final Where Clause:", JSON.stringify(where, null, 2));
 
   const [data, total] = await Promise.all([
     prisma.user.findMany({
