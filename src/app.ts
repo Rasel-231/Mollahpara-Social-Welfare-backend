@@ -9,10 +9,7 @@ import config from './config';
 const app: Application = express();
 
 const allowedOrigins = [
-  config.frontend_url,
   'https://mollahparaclub-two.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:5173'
 ];
 
 app.use(cors({
