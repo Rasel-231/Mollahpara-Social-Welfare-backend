@@ -9,6 +9,7 @@ export default {
   frontend_url: process.env.FRONTEND_URL,
   port: process.env.PORT,
   database_url: process.env.DATABASE_URL,
+  direct_url: process.env.DIRECT_URL,
   api_secret: process.env.API_SECRET,
   api_key: process.env.API_KEY,
   cloud_name: process.env.CLOUD_NAME,
