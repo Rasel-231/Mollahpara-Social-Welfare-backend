@@ -9,7 +9,8 @@ import config from './config';
 const app: Application = express();
 
 const allowedOrigins = [
-  'https://mollahparaclub-two.vercel.app',
+  // 'https://mollahparaclub-two.vercel.app',
+  "http://localhost:3000"
 ];
 
 app.use(cors({
