@@ -114,7 +114,7 @@ const refreshAccessToken = async (
   });
 
   if (!storedToken) {
-    // Token not found: either invalid, or already-rotated (potential reuse/theft).
+
     throw new AppError(401, 'Invalid refresh token');
   }
 
