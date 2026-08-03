@@ -1,21 +1,16 @@
 import { z } from 'zod';
 
+const passwordSchema = z
+  .string({ message: 'Password is required' })
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+  .regex(/[0-9]/, 'Password must contain at least one number');
+
 const login = z.object({
   body: z.object({
     email: z.string({ message: 'Email is required' }).email(),
     password: z.string({ message: 'Password is required' }),
-  }),
-});
-
-const refreshToken = z.object({
-  body: z.object({
-    refreshToken: z.string({ message: 'Refresh token is required' }),
-  }),
-});
-
-const logout = z.object({
-  body: z.object({
-    refreshToken: z.string({ message: 'Refresh token is required' }),
   }),
 });
 
@@ -24,9 +19,7 @@ const changePassword = z.object({
     currentPassword: z.string({
       message: 'Current password is required',
     }),
-    newPassword: z
-      .string({ message: 'New password is required' })
-      .min(6, 'Password must be at least 6 characters'),
+    newPassword: passwordSchema,
   }),
 });
 
@@ -39,16 +32,12 @@ const forgotPassword = z.object({
 const resetPassword = z.object({
   body: z.object({
     token: z.string({ message: 'Reset token is required' }),
-    newPassword: z
-      .string({ message: 'New password is required' })
-      .min(6, 'Password must be at least 6 characters'),
+    newPassword: passwordSchema,
   }),
 });
 
 export const AuthValidation = {
   login,
-  refreshToken,
-  logout,
   changePassword,
   forgotPassword,
   resetPassword,

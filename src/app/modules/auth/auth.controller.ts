@@ -2,25 +2,30 @@ import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { AuthService } from './auth.service';
+import config from '../../../config';
+import AppError from '../../../errors/AppError';
 
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? ('none' as const) : ('lax' as const),
+const cookieOptions: {
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'lax' | 'none' | 'strict';
+} = config.cookie;
+
+const accessTokenCookieOptions = {
+  ...cookieOptions,
+  maxAge: config.jwt.access_token_max_age,
+};
+
+const refreshTokenCookieOptions = {
+  ...cookieOptions,
+  maxAge: config.jwt.refresh_token_max_age,
 };
 
 const login = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.loginMember(req.body);
 
-  res.cookie('accessToken', result.accessToken, {
-    ...cookieOptions,
-    maxAge: 15 * 60 * 1000,
-  });
-
-  res.cookie('refreshToken', result.refreshToken, {
-    ...cookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie('accessToken', result.accessToken, accessTokenCookieOptions);
+  res.cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions);
 
   sendResponse(res, {
     statusCode: 200,
@@ -29,7 +34,6 @@ const login = catchAsync(async (req: Request, res: Response) => {
     data: { member: result.member },
   });
 });
-
 
 const refreshAccessToken = catchAsync(
   async (req: Request, res: Response) => {
@@ -45,10 +49,9 @@ const refreshAccessToken = catchAsync(
 
     const result = await AuthService.refreshAccessToken(refreshTokenValue);
 
-    res.cookie('accessToken', result.accessToken, {
-      ...cookieOptions,
-      maxAge: 15 * 60 * 1000,
-    });
+    res.cookie('accessToken', result.accessToken, accessTokenCookieOptions);
+
+    res.cookie('refreshToken', result.refreshToken, refreshTokenCookieOptions);
 
     sendResponse(res, {
       statusCode: 200,
@@ -66,8 +69,8 @@ const logout = catchAsync(async (req: Request, res: Response) => {
     await AuthService.logout(refreshTokenValue);
   }
 
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
 
   sendResponse(res, {
     statusCode: 200,
@@ -77,13 +80,21 @@ const logout = catchAsync(async (req: Request, res: Response) => {
 });
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
-  const memberId = (req as any).user.id;
+  const memberId = req.user?.id;
+
+  if (!memberId) {
+    throw new AppError(401, 'You are not authorized');
+  }
+
   await AuthService.changePassword(memberId, req.body);
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: 'Password changed successfully',
+    message: 'Password changed successfully. Please log in again.',
   });
 });
 
@@ -109,7 +120,12 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new AppError(401, 'You are not authorized');
+  }
+
   const result = await AuthService.getMyProfile(userId);
 
   sendResponse(res, {

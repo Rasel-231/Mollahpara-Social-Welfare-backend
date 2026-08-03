@@ -10,7 +10,23 @@ const router = Router();
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { success: false, statusCode: 429, message: 'Too many login attempts. Please try again after 15 minutes.' },
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many login attempts. Please try again after 15 minutes.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const refreshTokenLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many token refresh attempts. Please try again after 15 minutes.',
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -18,7 +34,11 @@ const loginLimiter = rateLimit({
 const forgotPasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
-  message: { success: false, statusCode: 429, message: 'Too many password reset requests. Please try again after 1 hour.' },
+  message: {
+    success: false,
+    statusCode: 429,
+    message: 'Too many password reset requests. Please try again after 1 hour.',
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -31,12 +51,10 @@ router.post(
 );
 router.post(
   '/refresh-token',
+  refreshTokenLimiter,
   AuthController.refreshAccessToken
 );
-router.post(
-  '/logout',
-  AuthController.logout
-);
+router.post('/logout', AuthController.logout);
 router.post(
   '/change-password',
   auth(),
@@ -55,10 +73,6 @@ router.post(
   AuthController.resetPassword
 );
 
-router.get(
-  '/profile',
-  auth(),
-  AuthController.getMyProfile
-);
+router.get('/profile', auth(), AuthController.getMyProfile);
 
 export const AuthRoutes = router;

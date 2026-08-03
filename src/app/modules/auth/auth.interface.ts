@@ -14,12 +14,9 @@ export interface IAuthResponse {
   };
 }
 
-export interface IRefreshTokenPayload {
-  refreshToken: string;
-}
-
 export interface IRefreshTokenResponse {
   accessToken: string;
+  refreshToken: string;
 }
 
 export interface IChangePasswordPayload {

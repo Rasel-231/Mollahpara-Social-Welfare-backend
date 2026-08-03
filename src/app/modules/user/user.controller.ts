@@ -21,7 +21,8 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const filters = pick(req.query, ['searchTerm', 'name', 'email', 'phone', 'village', 'designation', 'bloodGroup', 'role', 'isActive']);
   const paginationOptions = pick(req.query, ['page', 'limit', 'sortBy', 'sortOrder']);
 
-  const result = await UserService.getAllUsers({ ...filters, ...paginationOptions } as any);
+  const requesterRole = (req as any).user?.role;
+  const result = await UserService.getAllUsers({ ...filters, ...paginationOptions, requesterRole } as any);
 
   sendResponse(res, {
     statusCode: 200,
@@ -33,7 +34,8 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getUserById = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getUserById(req.params.id as string);
+  const requesterRole = (req as any).user?.role;
+  const result = await UserService.getUserById(req.params.id as string, requesterRole);
 
   sendResponse(res, {
     statusCode: 200,

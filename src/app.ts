@@ -8,10 +8,9 @@ import config from './config';
 
 const app: Application = express();
 
-const allowedOrigins = [
-  // 'https://mollahparaclub-two.vercel.app',
-  "http://localhost:3000"
-];
+app.set('trust proxy', 1);
+
+const allowedOrigins = [config.frontend_url];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -25,18 +24,19 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Club  API is running' });
+  res.json({ message: 'Club API is running' });
 });
 
 app.use('/api/v1', router);
 
-app.use(globalErrorHandler);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
@@ -45,5 +45,7 @@ app.use((req: Request, res: Response) => {
     message: 'Route not found',
   });
 });
+
+app.use(globalErrorHandler);
 
 export default app;

@@ -127,6 +127,7 @@ const getAllUsers = async (params: IUserFilter) => {
 
   const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
+
   const [data, total] = await Promise.all([
     prisma.user.findMany({
       where,

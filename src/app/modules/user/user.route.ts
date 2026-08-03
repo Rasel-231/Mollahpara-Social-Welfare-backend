@@ -1,4 +1,4 @@
-import { Router, NextFunction, Request, Response } from 'express';
+import { Router } from 'express';
 import validateRequest from '../../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
@@ -6,19 +6,6 @@ import { FileUploadHelper } from '../../../shared/fileUploader';
 import auth from '../../../middlewares/auth';
 
 const router = Router();
-
-const ownerOrAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const user = (req as any).user;
-  if (user?.role === 'ADMIN' || user?.id === req.params.id) {
-    return next();
-  }
-  return res.status(403).json({
-    success: false,
-    statusCode: 403,
-    message: 'You can only update your own profile',
-  });
-};
-
 
 router.post(
   '/create',
@@ -41,8 +28,7 @@ router.get('/:id', UserController.getUserById);
 
 router.patch(
   '/:id',
-  auth(),
-  ownerOrAdmin,
+  auth('ADMIN'),
   FileUploadHelper.upload.single('file'),
   (req, res, next) => {
     if (req.body.data) {

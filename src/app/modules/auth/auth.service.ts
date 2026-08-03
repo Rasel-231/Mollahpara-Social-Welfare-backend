@@ -16,44 +16,63 @@ const hashToken = (token: string): string => {
   return crypto.createHash('sha256').update(token).digest('hex');
 };
 
-const parseDurationToMs = (duration: string): number => {
-  const match = duration.match(/^(\d+)([smhd])$/);
-  if (!match) return 7 * 24 * 60 * 60 * 1000;
-  const value = parseInt(match[1]);
-  const unit = match[2];
-  const multipliers: Record<string, number> = {
-    s: 1000,
-    m: 60000,
-    h: 3600000,
-    d: 86400000,
-  };
-  return value * (multipliers[unit] || 86400000);
+const signAccessToken = (user: {
+  id: string;
+  email: string;
+  role: string;
+}): string => {
+  return jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    config.jwt.jwt_secret,
+    {
+      expiresIn: config.jwt.jwt_expires_in as jwt.SignOptions['expiresIn'],
+    }
+  );
+};
+
+const cleanupExpiredTokens = (memberId: string): Promise<unknown> => {
+  return prisma.refreshToken.deleteMany({
+    where: { memberId, expiresAt: { lt: new Date() } },
+  });
 };
 
 const loginMember = async (payload: ILoginPayload): Promise<IAuthResponse> => {
   const user = await prisma.user.findUnique({
     where: { email: payload.email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      password: true,
+      role: true,
+      isActive: true,
+    },
   });
 
-  if (!user) {
+  if (!user?.password) {
     throw new AppError(401, 'Invalid email or password');
   }
 
-  const isPasswordValid = await bcrypt.compare(payload.password, user.password ?? '');
+  const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
   if (!isPasswordValid) {
     throw new AppError(401, 'Invalid email or password');
   }
 
-  const accessToken = jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    config.jwt.jwt_secret as string,
-    { expiresIn: config.jwt.jwt_expires_in } as jwt.SignOptions
-  );
+  // if (!user.isActive) {
+  //   throw new AppError(
+  //     401,
+  //     'Your account is not active yet. Please wait for admin approval.'
+  //   );
+  // }
+
+  const accessToken = signAccessToken(user);
 
   const refreshTokenValue = crypto.randomBytes(40).toString('hex');
   const hashedToken = hashToken(refreshTokenValue);
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + config.jwt.refresh_token_max_age);
+
+  await cleanupExpiredTokens(user.id);
 
   await prisma.refreshToken.create({
     data: {
@@ -82,10 +101,20 @@ const refreshAccessToken = async (
 
   const storedToken = await prisma.refreshToken.findUnique({
     where: { token: hashedToken },
-    include: { member: true },
+    include: {
+      member: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          isActive: true,
+        },
+      },
+    },
   });
 
   if (!storedToken) {
+    // Token not found: either invalid, or already-rotated (potential reuse/theft).
     throw new AppError(401, 'Invalid refresh token');
   }
 
@@ -94,17 +123,29 @@ const refreshAccessToken = async (
     throw new AppError(401, 'Refresh token has expired');
   }
 
-  const accessToken = jwt.sign(
-    {
-      id: storedToken.member.id,
-      email: storedToken.member.email,
-      role: storedToken.member.role,
-    },
-    config.jwt.jwt_secret as string,
-    { expiresIn: config.jwt.jwt_expires_in } as jwt.SignOptions
-  );
+  if (!storedToken.member.isActive) {
+    await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+    throw new AppError(401, 'Your account is not active');
+  }
 
-  return { accessToken };
+  // Rotate: delete the used token, issue a new one.
+  await prisma.refreshToken.delete({ where: { id: storedToken.id } });
+
+  const newRefreshTokenValue = crypto.randomBytes(40).toString('hex');
+  const newHashedToken = hashToken(newRefreshTokenValue);
+  const expiresAt = new Date(Date.now() + config.jwt.refresh_token_max_age);
+
+  await prisma.refreshToken.create({
+    data: {
+      token: newHashedToken,
+      memberId: storedToken.member.id,
+      expiresAt,
+    },
+  });
+
+  const accessToken = signAccessToken(storedToken.member);
+
+  return { accessToken, refreshToken: newRefreshTokenValue };
 };
 
 const logout = async (refreshTokenValue: string): Promise<void> => {
@@ -137,13 +178,17 @@ const changePassword = async (
 
   const hashedPassword = await bcrypt.hash(
     payload.newPassword,
-    Number(config.salt_round)
+    config.salt_round
   );
 
   await prisma.user.update({
     where: { id: userId },
     data: { password: hashedPassword },
   });
+
+  // Invalidate every existing session for this user — a leaked refresh
+  // token from before the password change should stop working.
+  await prisma.refreshToken.deleteMany({ where: { memberId: userId } });
 };
 
 const forgotPassword = async (email: string): Promise<void> => {
@@ -157,9 +202,9 @@ const forgotPassword = async (email: string): Promise<void> => {
 
   const resetToken = crypto.randomBytes(32).toString('hex');
   const hashedResetToken = hashToken(resetToken);
-  const expiresAt = new Date(
-    Date.now() + parseDurationToMs(config.jwt.jwt_refresh_expires_in)
-  );
+  const expiresAt = new Date(Date.now() + config.reset_token_max_age);
+
+  await prisma.passwordResetToken.deleteMany({ where: { email: user.email } });
 
   await prisma.passwordResetToken.create({
     data: {
@@ -169,7 +214,7 @@ const forgotPassword = async (email: string): Promise<void> => {
     },
   });
 
-  const resetUrl = `${config.node_env === 'production' ? 'https://yourdomain.com' : 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  const resetUrl = `${config.frontend_url}/reset-password?token=${resetToken}`;
 
   await sendEmail({
     to: user.email,
@@ -178,7 +223,7 @@ const forgotPassword = async (email: string): Promise<void> => {
       <p>Hello ${user.name},</p>
       <p>You requested a password reset. Click the link below to reset your password:</p>
       <a href="${resetUrl}">${resetUrl}</a>
-      <p>This link will expire in ${config.jwt.jwt_refresh_expires_in}.</p>
+      <p>This link will expire shortly.</p>
       <p>If you didn't request this, please ignore this email.</p>
     `,
   });
@@ -205,12 +250,9 @@ const resetPassword = async (
     throw new AppError(401, 'Reset token has expired');
   }
 
-  const hashedPassword = await bcrypt.hash(
-    newPassword,
-    Number(config.salt_round)
-  );
+  const hashedPassword = await bcrypt.hash(newPassword, config.salt_round);
 
-  await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { email: resetTokenRecord.email },
     data: { password: hashedPassword },
   });
@@ -218,6 +260,10 @@ const resetPassword = async (
   await prisma.passwordResetToken.delete({
     where: { id: resetTokenRecord.id },
   });
+
+  // Invalidate every existing session — anyone using an old refresh token
+  // (including a potential attacker who caused the reset) is logged out.
+  await prisma.refreshToken.deleteMany({ where: { memberId: updatedUser.id } });
 };
 
 const getMyProfile = async (userId: string) => {
