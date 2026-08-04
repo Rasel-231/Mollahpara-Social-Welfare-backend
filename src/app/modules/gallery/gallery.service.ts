@@ -1,13 +1,7 @@
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
-import { FileUploadHelper } from '../../../shared/fileUploader';
+import { FileUploadHelper, IUploadedFile } from '../../../shared/fileUploader';
 import AppError from '../../../errors/AppError';
-
-interface IFile {
-  path: string;
-  fieldname: string;
-  originalname: string;
-}
 
 interface IGalleryPayload {
   title: string;
@@ -15,10 +9,10 @@ interface IGalleryPayload {
   image?: string;
 }
 
-const createGallery = async (payload: IGalleryPayload, file?: IFile) => {
+const createGallery = async (payload: IGalleryPayload, file?: IUploadedFile) => {
   let imageUrl = payload.image || "";
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     imageUrl = uploadedImage.secure_url;
   }
   if (!imageUrl) {
@@ -57,12 +51,12 @@ const getGalleryById = async (id: string) => {
   return gallery;
 };
 
-const updateGallery = async (id: string, payload: Partial<IGalleryPayload>, file?: IFile) => {
+const updateGallery = async (id: string, payload: Partial<IGalleryPayload>, file?: IUploadedFile) => {
   const existing = await prisma.gallery.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Gallery not found');
 
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
   }
 

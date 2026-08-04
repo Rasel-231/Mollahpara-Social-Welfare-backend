@@ -2,14 +2,9 @@ import bcrypt from 'bcryptjs';
 import config from '../../../config';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import { prisma } from '../../../shared/prisma';
-import { FileUploadHelper } from '../../../shared/fileUploader';
+import { FileUploadHelper, IUploadedFile } from '../../../shared/fileUploader';
+import { BloodGroup, MemberType, Prisma, Role } from '@prisma/client';
 import AppError from '../../../errors/AppError';
-
-interface IFile {
-  path: string;
-  fieldname: string;
-  originalname: string;
-}
 
 interface IUserPayload {
   name: string;
@@ -19,12 +14,12 @@ interface IUserPayload {
   designation?: string;
   image?: string;
   village: string;
-  bloodGroup?: string;
-  memberType?: string;
+  bloodGroup?: BloodGroup;
+  memberType?: MemberType;
   nid?: string;
 }
 
-interface IUserFilter {
+export interface IUserFilter {
   searchTerm?: string;
   name?: string;
   email?: string;
@@ -34,19 +29,18 @@ interface IUserFilter {
   bloodGroup?: string;
   role?: string;
   isActive?: string;
-  page?: number;
-  limit?: number;
+  page?: number | string;
+  limit?: number | string;
   sortBy?: string;
   sortOrder?: string;
 }
 
-const createUser = async (payload: IUserPayload, file?: IFile) => {
+const createUser = async (payload: IUserPayload, file?: IUploadedFile) => {
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
-
   }
-  const { password, images, role, ...userData } = payload as any;
+  const { password, ...userData } = payload;
 
   const saltRounds = Number(config.salt_round) || 12;
   const hashedPassword = await bcrypt.hash(password as string, saltRounds);
@@ -55,7 +49,6 @@ const createUser = async (payload: IUserPayload, file?: IFile) => {
     data: {
       ...userData,
       password: hashedPassword,
-      image: payload.image,
     },
     select: {
       id: true,
@@ -93,20 +86,20 @@ const getAllUsers = async (params: IUserFilter) => {
   const sortField = allowedSortFields.includes(sortFieldRaw) ? sortFieldRaw : 'createdAt';
   const sortDir = sortOrderRaw?.toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-  const andConditions: any[] = [];
+  const andConditions: Prisma.UserWhereInput[] = [];
 
   // সার্চ কন্ডিশন
   if (searchTerm) {
     andConditions.push({
       OR: ['name', 'email', 'phone', 'village', 'designation'].map(field => ({
-        [field]: { contains: searchTerm, mode: 'insensitive' }
+        [field]: { contains: searchTerm, mode: 'insensitive' as const }
       }))
-    });
+    } as Prisma.UserWhereInput);
   }
 
 
   if (Object.keys(filterData).length > 0) {
-    const filterCondition: any = {};
+    const filterCondition: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(filterData)) {
       if (value !== undefined && value !== null && value !== '') {
@@ -121,7 +114,7 @@ const getAllUsers = async (params: IUserFilter) => {
     }
 
     if (Object.keys(filterCondition).length > 0) {
-      andConditions.push(filterCondition);
+      andConditions.push(filterCondition as Prisma.UserWhereInput);
     }
   }
 
@@ -184,10 +177,10 @@ const getUserById = async (id: string) => {
   return user;
 };
 
-const updateUser = async (id: string, payload: Partial<IUserPayload>, file?: any) => {
+const updateUser = async (id: string, payload: Partial<IUserPayload>, file?: IUploadedFile) => {
 
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
   }
   if (payload.password) {
@@ -195,7 +188,7 @@ const updateUser = async (id: string, payload: Partial<IUserPayload>, file?: any
     payload.password = await bcrypt.hash(payload.password, saltRounds);
   }
 
-  const { role, ...updateData } = payload as any;
+  const updateData = { ...payload };
 
   return await prisma.user.update({
     where: { id },
@@ -264,7 +257,7 @@ const changeRole = async (id: string, role: string) => {
 
   return await prisma.user.update({
     where: { id },
-    data: { role: role as any },
+    data: { role: role as Role },
     select: {
       id: true,
       name: true,

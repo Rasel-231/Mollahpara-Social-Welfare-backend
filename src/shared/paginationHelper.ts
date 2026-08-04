@@ -33,8 +33,8 @@ const searchFields = (searchTerm: string | undefined, fields: string[]) => {
   };
 };
 
-const filterFields = (filters: Record<string, any>) => {
-  const clean: Record<string, any> = {};
+const filterFields = (filters: Record<string, string | boolean | null | undefined>) => {
+  const clean: Record<string, string | boolean> = {};
 
   Object.entries(filters).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {

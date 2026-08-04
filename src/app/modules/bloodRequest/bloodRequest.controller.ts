@@ -4,8 +4,8 @@ import sendResponse from '../../../shared/sendResponse';
 import { BloodRequestService } from './bloodRequest.service';
 
 const createBloodRequest = catchAsync(async (req: Request, res: Response) => {
-  if ((req as any).user?.id) {
-    req.body.requesterId = (req as any).user.id;
+  if (req.user?.id) {
+    req.body.requesterId = req.user.id;
   }
 
   const result = await BloodRequestService.createBloodRequest(req.body);

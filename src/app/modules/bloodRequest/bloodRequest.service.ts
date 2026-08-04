@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
-const createBloodRequest = async (payload: any) => {
+const createBloodRequest = async (payload: Prisma.BloodRequestUncheckedCreateInput) => {
 
   const bloodRequest = await prisma.bloodRequest.create({
     data: {
@@ -48,16 +49,20 @@ const getBloodRequestById = async (id: string) => {
   return bloodRequest;
 };
 
-const updateBloodRequest = async (id: string, payload: any) => {
+const updateBloodRequest = async (id: string, payload: Prisma.BloodRequestUpdateInput) => {
   const existing = await prisma.bloodRequest.findUnique({ where: { id } });
   if (!existing) {
     throw new AppError(404, 'Blood request not found');
   }
 
-  const dataToUpdate = {
+  const dataToUpdate: Prisma.BloodRequestUpdateInput = {
     ...payload,
-    ...(payload.requiredDate && { requiredDate: new Date(payload.requiredDate) }),
-    ...(payload.unitsRequired && { unitsRequired: Number(payload.unitsRequired) }),
+    ...(typeof payload.requiredDate === 'string'
+      ? { requiredDate: new Date(payload.requiredDate) }
+      : {}),
+    ...(typeof payload.unitsRequired === 'number'
+      ? { unitsRequired: payload.unitsRequired }
+      : {}),
   };
 
   return await prisma.bloodRequest.update({

@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
-const createDonor = async (payload: any) => {
+const createDonor = async (payload: Prisma.DonorCreateInput) => {
   const donor = await prisma.donor.create({
     data: payload,
   });
@@ -36,7 +37,7 @@ const getDonorById = async (id: string) => {
   return donor;
 };
 
-const updateDonor = async (id: string, payload: any) => {
+const updateDonor = async (id: string, payload: Prisma.DonorUpdateInput) => {
   const existing = await prisma.donor.findUnique({ where: { id } });
   if (!existing) {
     throw new AppError(404, 'Donor not found');

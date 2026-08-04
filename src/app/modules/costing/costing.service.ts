@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
-const createCosting = async (payload: any) => {
+const createCosting = async (payload: Prisma.CostingCreateInput) => {
   const result = await prisma.costing.create({ data: payload });
   return result;
 };
@@ -32,7 +33,7 @@ const getCostingById = async (id: string) => {
   return result;
 };
 
-const updateCosting = async (id: string, payload: any) => {
+const updateCosting = async (id: string, payload: Prisma.CostingUpdateInput) => {
   const existing = await prisma.costing.findUnique({ where: { id } });
   if (!existing) {
     throw new AppError(404, 'Costing not found');

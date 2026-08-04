@@ -6,8 +6,23 @@ interface IGenericError {
   message: string;
 }
 
+interface IZodIssue {
+  path: (string | number)[];
+  message: string;
+}
+
+interface IErrorPayload {
+  statusCode?: number;
+  message?: string;
+  name?: string;
+  code?: string;
+  meta?: { target?: (string | number)[] };
+  issues?: IZodIssue[];
+  stack?: string;
+}
+
 const globalErrorHandler = (
-  err: any,
+  err: IErrorPayload,
   req: Request,
   res: Response,
   next: NextFunction
@@ -19,7 +34,7 @@ const globalErrorHandler = (
   if (err.name === 'ZodError') {
     statusCode = 400;
     message = 'Validation Error';
-    errors = err.issues.map((issue: any) => ({
+    errors = (err.issues || []).map((issue) => ({
       path: issue.path.join('.'),
       message: issue.message,
     }));
@@ -28,7 +43,7 @@ const globalErrorHandler = (
     message = 'Duplicate key error';
     errors = [
       {
-        path: err.meta?.target?.[0] || 'field',
+        path: err.meta?.target?.[0] ? String(err.meta.target[0]) : 'field',
         message: 'A record with this value already exists',
       },
     ];

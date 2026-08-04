@@ -21,7 +21,7 @@ const update = z.object({
     bloodGroup: z.string().optional(),
     hospitalName: z.string().optional(),
     requiredDate: z.preprocess(
-      (val) => (typeof val === 'string' || val instanceof Date ? new Date(val as any) : val),
+      (val) => (typeof val === 'string' || val instanceof Date ? new Date(val) : val),
       z.date().optional()
     ),
     unitsRequired: z.number().int().positive().optional(),

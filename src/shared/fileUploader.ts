@@ -1,8 +1,16 @@
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import fs from 'fs';
+import type { Request } from 'express';
 import config from '../config';
 
+export interface IUploadedFile {
+  path: string;
+  fieldname: string;
+  originalname: string;
+  size: number;
+  mimetype: string;
+}
 
 cloudinary.config({
   cloud_name: config.cloud_name,
@@ -17,7 +25,7 @@ const ALLOWED_MIMETYPES = [
 
 const storage = multer.diskStorage({});
 
-const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   if (ALLOWED_MIMETYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
@@ -42,7 +50,7 @@ const cleanupFile = (filePath: string) => {
 };
 
 export const FileUploadHelper = {
-  uploadToCloudinary: async (file: any) => {
+  uploadToCloudinary: async (file: IUploadedFile): Promise<UploadApiResponse> => {
     try {
       const result = await cloudinary.uploader.upload(file.path);
       return result;

@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
-const createEvent = async (payload: any) => {
+const createEvent = async (payload: Prisma.UpcomingEventCreateInput) => {
   const event = await prisma.upcomingEvent.create({ data: payload });
   return event;
 };
@@ -30,7 +31,7 @@ const getEventById = async (id: string) => {
   return event;
 };
 
-const updateEvent = async (id: string, payload: any) => {
+const updateEvent = async (id: string, payload: Prisma.UpcomingEventUpdateInput) => {
   const event = await prisma.upcomingEvent.update({
     where: { id },
     data: payload,

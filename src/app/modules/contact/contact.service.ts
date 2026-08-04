@@ -1,8 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
 import AppError from '../../../errors/AppError';
 
-const createContact = async (payload: any) => {
+const createContact = async (payload: Prisma.ContactCreateInput) => {
   const contact = await prisma.contact.create({
     data: payload,
   });
@@ -35,7 +36,7 @@ const getContactById = async (id: string) => {
   return contact;
 };
 
-const updateContact = async (id: string, payload: any) => {
+const updateContact = async (id: string, payload: Prisma.ContactUpdateInput) => {
   const existing = await prisma.contact.findUnique({ where: { id } });
   if (!existing) {
     throw new AppError(404, 'Contact not found');

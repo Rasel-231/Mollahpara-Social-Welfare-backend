@@ -1,13 +1,8 @@
 import { prisma } from '../../../shared/prisma';
 import { paginationHelper } from '../../../shared/paginationHelper';
-import { FileUploadHelper } from '../../../shared/fileUploader';
+import { FileUploadHelper, IUploadedFile } from '../../../shared/fileUploader';
+import { Prisma } from '@prisma/client';
 import AppError from '../../../errors/AppError';
-
-interface IFile {
-  path: string;
-  fieldname: string;
-  originalname: string;
-}
 
 interface INewsPayload {
   title: string;
@@ -29,9 +24,9 @@ const generateSlug = (title: string): string => {
     + '-' + Date.now();
 };
 
-const createNews = async (payload: INewsPayload, file?: IFile) => {
+const createNews = async (payload: INewsPayload, file?: IUploadedFile) => {
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
   }
 
@@ -78,16 +73,16 @@ const getNewsById = async (id: string) => {
   return news;
 };
 
-const updateNews = async (id: string, payload: Partial<INewsPayload>, file?: IFile) => {
+const updateNews = async (id: string, payload: Partial<INewsPayload>, file?: IUploadedFile) => {
   const existing = await prisma.post.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'News not found');
 
   if (file) {
-    const uploadedImage: any = await FileUploadHelper.uploadToCloudinary(file);
+    const uploadedImage = await FileUploadHelper.uploadToCloudinary(file);
     payload.image = uploadedImage.secure_url;
   }
 
-  const data: any = { ...payload };
+  const data: Prisma.PostUpdateInput = { ...payload };
   if (payload.published && !existing.publishedAt) {
     data.publishedAt = new Date().toISOString();
   }

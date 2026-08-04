@@ -1,6 +1,9 @@
 import { defineConfig } from "@prisma/config";
+import dotenv from "dotenv";
 
-const env = (globalThis as any).process?.env ?? {};
+dotenv.config();
+
+const env = process.env as Record<string, string | undefined>;
 
 export default defineConfig({
   schema: "./prisma/schema.prisma",
@@ -8,10 +11,8 @@ export default defineConfig({
     path: "./prisma/migrations",
   },
   datasource: {
-    url: env.DATABASE_URL || "postgresql://postgres.gdodmgbypvrhuggycqnn:Rasel150231@@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true",
-    shadowDatabaseUrl:
-      env.DIRECT_URL ||
-      "postgresql://postgres.gdodmgbypvrhuggycqnn:Rasel150231@@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres",
+    url: env.DATABASE_URL,
+    shadowDatabaseUrl: env.DIRECT_URL,
   },
 });
 
