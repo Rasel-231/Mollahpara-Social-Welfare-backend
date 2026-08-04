@@ -10,10 +10,14 @@ const app: Application = express();
 
 app.set('trust proxy', 1);
 
-const allowedOrigins = [config.frontend_url];
+const allowedOrigins = [
+  config.frontend_url,
+  'https://mollahparaclub-two.vercel.app'
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -25,7 +29,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
@@ -36,7 +39,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api/v1', router);
-
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
